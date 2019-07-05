@@ -46,3 +46,18 @@ Particularité(s) à noter :
 Particularité(s) à noter : code couleur déduit de typeres
 
 ---
+
+`geo_canadectec` : Troncon de conduite de canalisation détecté
+
+|Nom attribut | Définition | Type  | NULL |
+|:---|:---|:---|:---|  
+|idcandetec|Identifiant unique de la canalisation 'opération de détection dans la base de données|integer|N|
+|idopedetec|Identifiant unique de l'opération de détection|integer| |
+|insee|Code INSEE|character varying(5)|N|
+|qualglocxy|Qualité de la géolocalisation planimètrique (XY)|character varying(2)|N|
+|qualglocz|Qualité de la géolocalisation altimétique (Z)|character varying(2)|N|
+|geom|Géométrie de l'objet|LineString,2154| |
+
+Particularité(s) à noter : presta et moa déduite de la relation avec idopedetec
+
+---
