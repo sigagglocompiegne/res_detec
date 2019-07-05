@@ -14,10 +14,10 @@
 |insee|Code INSEE|character varying(5)| |
 |typelever|geodec/trancheouverte|character varying(2)|N|
 |typeres|Type de réseau|character varying(dlqsidqsldjqsld)|N|
-|x|Numéro du point|character varying(30)| |
-|y|Numéro du point|character varying(30)| |
-|zg|Altimétrie de la génératrice supérieure en mètre NGF|dsklqjdlkqsjdklqsjldjlqsjd numeric,3| |
-|z|Altimétrie de la génératrice supérieure en mètre NGF|dsklqjdlkqsjdklqsjldjlqsjd numeric,3|O pas possible si fouille ouverte|
+|xgn|Coordonnée X de la génératrice supérieure du réseau (Lambert 93)|dqsdqsdqsdqsd|N|
+|ygn|Coordonnée Y de la génératrice supérieure du réseau (Lambert 93)|dqsdqsdqsdqsd|N|
+|zgn|Altimétrie de la génératrice supérieure du réseau en mètre NGF|dsklqjdlkqsjdklqsjldjlqsjd numeric,3| |
+|z|Altimétrie en mètre NGF|dsklqjdlkqsjdklqsjldjlqsjd numeric,3|O pas possible si fouille ouverte|
 |p|Profondeur entre la côte et la cote de la génératrice supérieure en mètre|dsklqjdlkqsjdklqsjldjlqsjd numeric,3|O pas possible si fouille ouverte|
 |prest|Nom du prestataire|character varying(80)|N|
 |couleur|Code couleur du type de réseau détection sous forme HEXE (#000000)|character varying(7)| | >> déduit typeres
