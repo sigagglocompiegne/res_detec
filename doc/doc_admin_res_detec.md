@@ -4,6 +4,23 @@
 
 ## Classes d'objets
 
+
+`geo_opedetec` : Emprise de l'opération de détection des réseaux
+
+|Nom attribut | Définition | Type  | NULL |
+|:---|:---|:---|:---|  
+|idopedetec|Identifiant unique de l'opération de détection dans la base de données|integer|N|
+|id|Identifiant unique du prestataire|integer| |
+|typelever|geodec/trancheouverte|character varying(2)|N|
+|presta|Nom du prestataire|character varying(80)|N|
+|moa|Nom du maitre d'ouvrage de l'opération de détection de réseau|character varying(80)|N|
+|geom|Géométrie de l'objet|Polygon,2154| |
+
+Particularité(s) à noter : 
+
+---
+
+
 `geo_ptdetec` : Point de détection/géoréférencement 
 
 |Nom attribut | Définition | Type  | NULL |
@@ -23,7 +40,7 @@
 |moa|Nom du maitre d'ouvrage de l'opération de détection de réseau|character varying(80)|N|
 |couleur|Code couleur du type de réseau détection sous forme HEXE (#000000)|character varying(7)| | >> déduit typeres
 |timestamp|Horodatage du point|Timestamp|N|
-|geom|Géométrie de l'objet ponctuel|Point,2154| |
+|geom|Géométrie de l'objet|Point,2154| |
 
 Particularité(s) à noter : code couleur déduit de typeres
 
