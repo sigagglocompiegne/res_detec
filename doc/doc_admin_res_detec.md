@@ -11,7 +11,8 @@
 |:---|:---|:---|:---|  
 |idopedetec|Identifiant unique de l'opération de détection dans la base de données|integer|N|
 |id|Identifiant unique du prestataire|integer| |
-|typelever|geodec/trancheouverte|character varying(2)|N|
+|ref|Référence de l'opération de détection|character varying(80)|N|
+|dateope|Date de l'opération de détection|character varying(80)|N|
 |presta|Nom du prestataire|character varying(80)|N|
 |moa|Nom du maitre d'ouvrage de l'opération de détection de réseau|character varying(80)|N|
 |geom|Géométrie de l'objet|Polygon,2154| |
