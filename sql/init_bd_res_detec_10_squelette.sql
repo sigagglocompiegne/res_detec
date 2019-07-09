@@ -22,8 +22,8 @@
 
 -- fkey
 
-ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_qualite_geoloc_xy_fkey;
-ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_qualite_geoloc_z_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_classe_prec_xy_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_classe_prec_z_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_troncon DROP CONSTRAINT IF EXISTS lt_natres_fkey;
@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS m_reseau_detection.geo_detec_troncon;
 -- domaine de valeur
 
 DROP TABLE IF EXISTS m_reseau_detection.lt_natres;
-DROP TABLE IF EXISTS m_reseau_detection.lt_qualite_geoloc;
+DROP TABLE IF EXISTS m_reseau_detection.lt_classe_prec;
 
 
 -- sequence
@@ -75,7 +75,7 @@ COMMENT ON SCHEMA m_reseau_detection
 -- ####################################################################################################################################################
 
 
--- ### domaine de valeur hérité du standard STAR-DT
+-- ### domaine de valeur hérité du standard StaR-DT
 
 -- Table: m_reseau_detection.lt_natres
 
@@ -105,52 +105,51 @@ INSERT INTO m_reseau_detection.lt_natres(
 ('ELEC','Electricité','#FF0000'),
 ('ELECECL','Eclairage public','#FF0000'),
 ('ELECSLT','Signalisation lumineuse tricolore','#FF0000'),
-('ELECBT','Eléctricité basse tension','#FF0000'),
-('ELECHT','Eléctricité haute tension','#FF0000'),
+('ELECTRD','Eléctricité transport/distribution','#FF0000'),
 ('GAZ','Gaz','#FFFF00'),
 ('CHIM','Produits chimiques','#F99707'),
 ('AEP','Eau potable','#00B0F0'),
-('INCE','Incendie','#00B0F0'),
 ('ASS','Assainissement et pluvial','#663300'),
 ('ASSEP','Eaux pluviales','#663300'),
 ('ASSEU','Eaux usées','#663300'),
 ('ASSUN','Réseau unitaire','#663300'),
-('PINS','Protection Inondation-Submersion','#663300'),
-('DECH','Déchets','#663300'),
 ('CHAU','Chauffage et climatisation','#7030A0'),
 ('COM','Télécom','#00FF00'),
+('DECH','Déchets','#663300'),
+('INCE','Incendie','#00B0F0'),
+('PINS','Protection Inondation-Submersion','#663300'),
 ('MULT','Multi réseaux','#FF00FF');
 
 
--- ### domaine de valeur hérité du standard RAEPA
+-- ### domaine de valeur hérité du standard StaR-DT
 
--- Table: m_reseau_detection.lt_qualite_geoloc
+-- Table: m_reseau_detection.lt_classe_prec
 
--- DROP TABLE m_reseau_detection.lt_qualite_geoloc;
+-- DROP TABLE m_reseau_detection.lt_classe_prec;
 
-CREATE TABLE m_reseau_detection.lt_qualite_geoloc
+CREATE TABLE m_reseau_detection.lt_classe_prec
 (
-  code character varying(2) NOT NULL,
+  code character varying(1) NOT NULL,
   valeur character varying(80) NOT NULL,
   definition character varying(255),
-  CONSTRAINT lt_qualite_geoloc_pkey PRIMARY KEY (code)
+  CONSTRAINT lt_classe_prec_pkey PRIMARY KEY (code)
 )
 WITH (
   OIDS=FALSE
 );
 
-COMMENT ON TABLE m_reseau_detection.lt_qualite_geoloc
+COMMENT ON TABLE m_reseau_detection.lt_classe_prec
   IS 'Classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
-COMMENT ON COLUMN m_reseau_detection.lt_qualite_geoloc.code IS 'Code de la liste énumérée relative à la classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
-COMMENT ON COLUMN m_reseau_detection.lt_qualite_geoloc.valeur IS 'Valeur de la liste énumérée relative à la classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
-COMMENT ON COLUMN m_reseau_detection.lt_qualite_geoloc.definition IS 'Définition de la liste énumérée relative à la classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
+COMMENT ON COLUMN m_reseau_detection.lt_classe_prec.code IS 'Code de la liste énumérée relative à la classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
+COMMENT ON COLUMN m_reseau_detection.lt_classe_prec.valeur IS 'Valeur de la liste énumérée relative à la classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
+COMMENT ON COLUMN m_reseau_detection.lt_classe_prec.definition IS 'Définition de la liste énumérée relative à la classe de précision au sens de l''arrêté interministériel du 15 février 2012 modifié (DT-DICT)';
 
-INSERT INTO m_reseau_detection.lt_qualite_geoloc(
+INSERT INTO m_reseau_detection.lt_classe_prec(
             code, valeur, definition)
     VALUES
-('01','Classe A','Classe de précision inférieure 40 cm'),
-('02','Classe B','Classe de précision supérieure à 40 cm et inférieure à 1,50 m'),
-('03','Classe C','Classe de précision supérieure à 1,50 m');
+('A','Classe A','Classe de précision inférieure 40 cm'),
+('B','Classe B','Classe de précision supérieure à 40 cm et inférieure à 1,50 m'),
+('C','Classe C','Classe de précision supérieure à 1,50 m');
 
 
 
@@ -246,6 +245,9 @@ ALTER TABLE m_reseau_detection.geo_detec_operation ALTER COLUMN idopedetec SET D
 
 -- #################################################################### CLASSE POINT DE DETECTION/GEOREF ###############################################
 
+-- ## revoir cette classe par rapport à celle du PCRS
+
+
 -- Table: m_reseau_detection.geo_detec_point
 
 -- DROP TABLE m_reseau_detection.geo_detec_point;
@@ -259,7 +261,7 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   insee character varying(5) NOT NULL,
   typedetec character varying(2) NOT NULL, -- fkey vers domaine de valeur
   methode character varying(80) NOT NULL,  
-  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
+  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur lt_natres  
   x numeric(10,3) NOT NULL,
   y numeric(11,3) NOT NULL,
   z_gn numeric (7,3) NOT NULL,
@@ -267,8 +269,8 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   p_gn numeric (5,3),
   prec_xy numeric (7,3) NOT NULL,
   prec_z_gn numeric (7,3) NOT NULL,
-  qualglocxy character varying (2) NOT NULL,
-  qualglocz character varying (2) NOT NULL,
+  qualglocxy character varying (1) NOT NULL,  -- voir pour renommer différemment ex : clprecxy
+  qualglocz character varying (1) NOT NULL, -- voir pour renommer différemment ex : clprecz
   horodatage timestamp without time zone NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
@@ -294,8 +296,8 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_point.y IS 'Coordonnée X Lambert
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z_gn IS 'Altimétrie Z de la génératrice (supérieure si enterrée, inférieure si aérienne) du réseau en mètre NGF)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z IS 'Altimétrie Z du terrain affleurant en mètre NGF)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.p_gn IS 'Profondeur de la génératrice du réseau en mètre';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_xy IS '**********';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_z_gn IS '**********';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_xy IS 'Précision absolue en planimètre (en centimètres)';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_z_gn IS 'Précision absolue en altimétrie de la génératrice supérieure (en centimètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.qualglocxy IS '**********';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.qualglocz IS '***********';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.horodatage IS 'Horodatage détection/géoréfécement du point';
@@ -422,20 +424,20 @@ ALTER TABLE m_reseau_detection.geo_detec_troncon
 
 -- ## CLASSE GEOLOC        
 
--- Foreign Key: m_reseau_detection.lt_qualite_geoloc_xy_fkey
+-- Foreign Key: m_reseau_detection.lt_classe_prec_xy_fkey
 
--- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_qualite_geoloc_xy_fkey;
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_classe_prec_xy_fkey;
 
 ALTER TABLE m_reseau_detection.geo_detec_point
-  ADD CONSTRAINT lt_qualite_geoloc_xy_fkey FOREIGN KEY (qualglocxy)
-      REFERENCES m_reseau_detection.lt_qualite_geoloc (code) MATCH SIMPLE
+  ADD CONSTRAINT lt_classe_prec_xy_fkey FOREIGN KEY (qualglocxy)
+      REFERENCES m_reseau_detection.lt_classe_prec (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
 
--- Foreign Key: m_reseau_detection.lt_qualite_geoloc_z_fkey
+-- Foreign Key: m_reseau_detection.lt_classe_prec_z_fkey
 
--- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_qualite_geoloc_z_fkey;   
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_classe_prec_z_fkey;   
 
 ALTER TABLE m_reseau_detection.geo_detec_point               
-  ADD CONSTRAINT lt_qualite_geoloc_z_fkey FOREIGN KEY (qualglocz)
-      REFERENCES m_reseau_detection.lt_qualite_geoloc (code) MATCH SIMPLE
+  ADD CONSTRAINT lt_classe_prec_z_fkey FOREIGN KEY (qualglocz)
+      REFERENCES m_reseau_detection.lt_classe_prec (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;     
