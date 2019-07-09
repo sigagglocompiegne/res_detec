@@ -22,8 +22,8 @@
 
 -- fkey
 
--- ALTER TABLE IF EXISTS schema.table DROP CONSTRAINT IF EXISTS contrainte;
-
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_qualite_geoloc_xy_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_qualite_geoloc_z_fkey;
 
 -- classe
 
@@ -216,6 +216,8 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   p_gn numeric (5,3),
   prec_xy numeric (7,3) NOT NULL,
   prec_z_gn numeric (7,3) NOT NULL,
+  qualglocxy character varying (2) NOT NULL,
+  qualglocz character varying (2) NOT NULL,
   horodatage timestamp without time zone NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
@@ -243,6 +245,8 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z IS 'Altimétrie Z du terr
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.p_gn IS 'Profondeur de la génératrice du réseau en mètre';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_xy IS '**********';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_z_gn IS '**********';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.qualglocxy IS '**********';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.qualglocz IS '***********';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.horodatage IS 'Horodatage détection/géoréfécement du point';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
@@ -278,7 +282,7 @@ WITH (
 
 COMMENT ON TABLE m_reseau_detection.geo_detec_noeud
   IS 'Noeud de réseau (ouvrage/appareillage) détecté';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.idptdetec IS 'Identifiant unique du noeud de réseau détecté dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.idnddetec IS 'Identifiant unique du noeud de réseau détecté dans la base de données';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.idndope IS 'Identifiant du noeud de réseau détecté dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.insee IS 'Code INSEE de la commmune';
@@ -301,7 +305,7 @@ CREATE TABLE m_reseau_detection.geo_detec_troncon
 (
   idtrdetec character varying(254) NOT NULL,
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
-  idndope integer NOT NULL,
+  idtrope integer NOT NULL,
   insee character varying(5) NOT NULL,
   typeres character varying(5) NOT NULL,         -- fkey vers domaine de valeur  
 -- diam
@@ -319,7 +323,7 @@ COMMENT ON TABLE m_reseau_detection.geo_detec_troncon
   IS 'Noeud de réseau (ouvrage/appareillage) détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.idtrdetec IS 'Identifiant unique du tronçon de réseau détecté dans la base de données';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.refope IS 'Référence de l''opération de détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.idndope IS 'Identifiant du tronçon de réseau détecté dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.idtrope IS 'Identifiant du tronçon de réseau détecté dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.typeres IS 'Type de réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.date_sai IS 'Horodatage de l''intégration en base de l''objet';
@@ -328,15 +332,29 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.geom IS 'Géométrie 3D d
 
 ALTER TABLE m_reseau_detection.geo_detec_troncon ALTER COLUMN idtrdetec SET DEFAULT nextval('m_reseau_detection.geo_detec_reseau_id_seq'::regclass);
 
-
-
-
-  
-  
+ 
   
 -- ####################################################################################################################################################
 -- ###                                                                                                                                              ###
 -- ###                                                           FKEY (clé étrangère)                                                               ###
 -- ###                                                                                                                                              ###
 -- ####################################################################################################################################################
-  
+
+
+-- Foreign Key: m_reseau_detection.lt_qualite_geoloc_xy_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_qualite_geoloc_xy_fkey;
+
+ALTER TABLE m_reseau_detection.geo_detec_point
+  ADD CONSTRAINT lt_qualite_geoloc_xy_fkey FOREIGN KEY (qualglocxy)
+      REFERENCES m_reseau_detection.lt_qualite_geoloc (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- Foreign Key: m_reseau_detection.lt_qualite_geoloc_z_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_qualite_geoloc_z_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_point               
+  ADD CONSTRAINT lt_qualite_geoloc_z_fkey FOREIGN KEY (qualglocz)
+      REFERENCES m_reseau_detection.lt_qualite_geoloc (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;     
