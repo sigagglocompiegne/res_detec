@@ -24,6 +24,9 @@
 
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_qualite_geoloc_xy_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_qualite_geoloc_z_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_troncon DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 
 -- classe
 
@@ -34,6 +37,7 @@ DROP TABLE IF EXISTS m_reseau_detection.geo_detec_troncon;
 
 -- domaine de valeur
 
+DROP TABLE IF EXISTS m_reseau_detection.lt_natres;
 DROP TABLE IF EXISTS m_reseau_detection.lt_qualite_geoloc;
 
 
@@ -71,7 +75,54 @@ COMMENT ON SCHEMA m_reseau_detection
 -- ####################################################################################################################################################
 
 
+-- ### domaine de valeur hérité du standard STAR-DT
 
+-- Table: m_reseau_detection.lt_natres
+
+-- DROP TABLE m_reseau_detection.lt_natres;
+
+CREATE TABLE m_reseau_detection.lt_natres
+(
+  code character varying(7) NOT NULL,
+  valeur character varying(80) NOT NULL,
+  couleur character varying(7) NOT NULL,
+  CONSTRAINT lt_natres_pkey PRIMARY KEY (code)
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.lt_natres
+  IS 'Nature du réseau';
+COMMENT ON COLUMN m_reseau_detection.lt_natres.code IS 'Code de la liste énumérée relative à la nature du réseau';
+COMMENT ON COLUMN m_reseau_detection.lt_natres.valeur IS 'Valeur de la liste énumérée relative à la nature du réseau';
+COMMENT ON COLUMN m_reseau_detection.lt_natres.couleur IS 'Code couleur (hexadecimal) des réseaux enterrés selon la norme NF P 98-332';
+
+INSERT INTO m_reseau_detection.lt_natres(
+            code, valeur, couleur)
+    VALUES
+('00','Non défini','#FFFFFF'),
+('ELEC','Electricité','#FF0000'),
+('ELECECL','Eclairage public','#FF0000'),
+('ELECSLT','Signalisation lumineuse tricolore','#FF0000'),
+('ELECBT','Eléctricité basse tension','#FF0000'),
+('ELECHT','Eléctricité haute tension','#FF0000'),
+('GAZ','Gaz','#FFFF00'),
+('CHIM','Produits chimiques','#F99707'),
+('AEP','Eau potable','#00B0F0'),
+('INCE','Incendie','#00B0F0'),
+('ASS','Assainissement et pluvial','#663300'),
+('ASSEP','Eaux pluviales','#663300'),
+('ASSEU','Eaux usées','#663300'),
+('ASSUN','Réseau unitaire','#663300'),
+('PINS','Protection Inondation-Submersion','#663300'),
+('DECH','Déchets','#663300'),
+('CHAU','Chauffage et climatisation','#7030A0'),
+('COM','Télécom','#00FF00'),
+('MULT','Multi réseaux','#FF00FF');
+
+
+-- ### domaine de valeur hérité du standard RAEPA
 
 -- Table: m_reseau_detection.lt_qualite_geoloc
 
@@ -82,7 +133,7 @@ CREATE TABLE m_reseau_detection.lt_qualite_geoloc
   code character varying(2) NOT NULL,
   valeur character varying(80) NOT NULL,
   definition character varying(255),
-  CONSTRAINT m_reseau_detection_qualite_geoloc_pkey PRIMARY KEY (code)
+  CONSTRAINT lt_qualite_geoloc_pkey PRIMARY KEY (code)
 )
 WITH (
   OIDS=FALSE
@@ -208,7 +259,7 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   insee character varying(5) NOT NULL,
   typedetec character varying(2) NOT NULL, -- fkey vers domaine de valeur
   methode character varying(80) NOT NULL,  
-  typeres character varying(5) NOT NULL,         -- fkey vers domaine de valeur  
+  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
   x numeric(10,3) NOT NULL,
   y numeric(11,3) NOT NULL,
   z_gn numeric (7,3) NOT NULL,
@@ -237,7 +288,7 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_point.num IS 'Numéro du point';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.typedetec IS 'Type de ';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.methode IS 'Méthode employée pour la détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_point.typeres IS 'Type de réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.natres IS 'Nature du réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.x IS 'Coordonnée X Lambert 93 (en mètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.y IS 'Coordonnée X Lambert 93 (en mètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z_gn IS 'Altimétrie Z de la génératrice (supérieure si enterrée, inférieure si aérienne) du réseau en mètre NGF)';
@@ -267,10 +318,10 @@ CREATE TABLE m_reseau_detection.geo_detec_noeud
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
   idndope integer NOT NULL,
   insee character varying(5) NOT NULL,
-  typeres character varying(5) NOT NULL,         -- fkey vers domaine de valeur  
+  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
   typenoeud character varying(5) NOT NULL,         -- fkey vers domaine de valeur
--- angle
--- symbole  
+-- symbangle
+-- symb  
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   geom geometry(PointZ,2154),
@@ -286,7 +337,7 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.idnddetec IS 'Identifiant u
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.idndope IS 'Identifiant du noeud de réseau détecté dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.insee IS 'Code INSEE de la commmune';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.typeres IS 'Type de réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.natres IS 'Nature du réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.typenoeud IS 'Type d''ouvrage ou d''appareillage';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
@@ -307,7 +358,7 @@ CREATE TABLE m_reseau_detection.geo_detec_troncon
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
   idtrope integer NOT NULL,
   insee character varying(5) NOT NULL,
-  typeres character varying(5) NOT NULL,         -- fkey vers domaine de valeur  
+  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
 -- diam
 -- materiau
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
@@ -325,7 +376,7 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.idtrdetec IS 'Identifiant
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.idtrope IS 'Identifiant du tronçon de réseau détecté dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.insee IS 'Code INSEE de la commmune';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.typeres IS 'Type de réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.natres IS 'Nature du réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.geom IS 'Géométrie 3D de l''objet';
@@ -340,6 +391,36 @@ ALTER TABLE m_reseau_detection.geo_detec_troncon ALTER COLUMN idtrdetec SET DEFA
 -- ###                                                                                                                                              ###
 -- ####################################################################################################################################################
 
+-- ## NATURE DU RESEAU
+
+-- Foreign Key: m_reseau_detection.lt_natres_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_natres_fkey;
+
+ALTER TABLE m_reseau_detection.geo_detec_point
+  ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
+      REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- Foreign Key: m_reseau_detection.lt_natres_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_noeud DROP CONSTRAINT lt_natres_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_noeud               
+  ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
+      REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+      
+-- Foreign Key: m_reseau_detection.lt_natres_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_troncon DROP CONSTRAINT lt_natres_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_troncon               
+  ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
+      REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- ## CLASSE GEOLOC        
 
 -- Foreign Key: m_reseau_detection.lt_qualite_geoloc_xy_fkey
 
