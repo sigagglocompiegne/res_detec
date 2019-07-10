@@ -7,6 +7,12 @@
 /* Auteur : Florent Vanhoutte */
 
 
+/* TO DO
+
+classe abstraite de réseau à gérer pour troncon et noeud de réseau avec attribut commun à reprendre
+
+*/
+
 
 -- ####################################################################################################################################################
 -- ###                                                                                                                                              ###
@@ -27,14 +33,18 @@ ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXIS
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_troncon DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS refope_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_troncon DROP CONSTRAINT IF EXISTS refope_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXISTS refope_fkey;
+
 
 -- classe
 
-DROP TABLE IF EXISTS m_reseau_detection.geo_detec_operation;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_point;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_noeud;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_troncon;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe;
+DROP TABLE IF EXISTS m_reseau_detection.geo_detec_operation;
 
 -- domaine de valeur
 
@@ -193,7 +203,9 @@ CREATE SEQUENCE m_reseau_detection.geo_detec_reseau_id_seq
   MINVALUE 0
   MAXVALUE 9223372036854775807
   START 1
-  CACHE 1;  
+  CACHE 1;
+  
+-- sequence enveloppe ??    
   
 
 -- ####################################################################################################################################################
@@ -224,7 +236,8 @@ CREATE TABLE m_reseau_detection.geo_detec_operation
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
   geom geometry(MultiPolygon,2154),
-  CONSTRAINT geo_detec_operation_pkey PRIMARY KEY (idopedetec) 
+  CONSTRAINT geo_detec_operation_pkey PRIMARY KEY (idopedetec),
+  CONSTRAINT refope_ukey UNIQUE (refope) 
 )
 WITH (
   OIDS=FALSE
@@ -415,7 +428,7 @@ WITH (
 );
 
 COMMENT ON TABLE m_reseau_detection.geo_detec_enveloppe
-  IS 'Noeud de réseau (ouvrage/appareillage) détecté';
+  IS 'Enveloppe de l''affleurant du réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.idenvdetec IS 'Identifiant unique de l''enveloppe de réseau détecté dans la base de données';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.idenvope IS 'Identifiant de l''enveloppe de réseau détecté dans l''opération de détection';
@@ -434,6 +447,9 @@ ALTER TABLE m_reseau_detection.geo_detec_enveloppe ALTER COLUMN idenvdetec SET D
 -- ###                                                           FKEY (clé étrangère)                                                               ###
 -- ###                                                                                                                                              ###
 -- ####################################################################################################################################################
+
+
+-- #### domaine de valeur ####
 
 -- ## NATURE DU RESEAU
 
@@ -482,4 +498,35 @@ ALTER TABLE m_reseau_detection.geo_detec_point
 ALTER TABLE m_reseau_detection.geo_detec_point               
   ADD CONSTRAINT lt_classe_prec_z_fkey FOREIGN KEY (qualglocz)
       REFERENCES m_reseau_detection.lt_classe_prec (code) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION;     
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+      
+-- #### lien fkey refope ####  
+
+-- Foreign Key: m_reseau_detection.refope_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT refope_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_point               
+  ADD CONSTRAINT refope_fkey FOREIGN KEY (refope)
+      REFERENCES m_reseau_detection.geo_detec_operation (refope) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+      
+-- Foreign Key: m_reseau_detection.refope_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_troncon DROP CONSTRAINT refope_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_troncon               
+  ADD CONSTRAINT refope_fkey FOREIGN KEY (refope)
+      REFERENCES m_reseau_detection.geo_detec_operation (refope) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+      
+-- Foreign Key: m_reseau_detection.refope_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_noeud DROP CONSTRAINT refope_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_noeud               
+  ADD CONSTRAINT refope_fkey FOREIGN KEY (refope)
+      REFERENCES m_reseau_detection.geo_detec_operation (refope) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;                  
+      
+           
