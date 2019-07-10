@@ -34,6 +34,7 @@ DROP TABLE IF EXISTS m_reseau_detection.geo_detec_operation;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_point;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_noeud;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_troncon;
+DROP TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe;
 
 -- domaine de valeur
 
@@ -93,7 +94,7 @@ WITH (
 );
 
 COMMENT ON TABLE m_reseau_detection.lt_natres
-  IS 'Nature du réseau';
+  IS 'Type de réseau conformément à la liste des réseaux de la NF P98-332';
 COMMENT ON COLUMN m_reseau_detection.lt_natres.code IS 'Code de la liste énumérée relative à la nature du réseau';
 COMMENT ON COLUMN m_reseau_detection.lt_natres.valeur IS 'Valeur de la liste énumérée relative à la nature du réseau';
 COMMENT ON COLUMN m_reseau_detection.lt_natres.couleur IS 'Code couleur (hexadecimal) des réseaux enterrés selon la norme NF P 98-332';
@@ -214,10 +215,11 @@ CREATE TABLE m_reseau_detection.geo_detec_operation
 (
   idopedetec character varying(254) NOT NULL,
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
+  natres character varying(7) NOT NULL, --  fkey
   mouvrage character varying(80) NOT NULL,
   presta character varying(80) NOT NULL,
--- voir pour préciser la nature de la presta (multiréseau, monoréseau, si oui lequel)
--- voir pour préciser le contexte (IC ou OL)  
+-- voir pour préciser le contexte (IC ou OL)
+-- lien vers fichier dwg  
   dateope date NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
@@ -232,7 +234,10 @@ COMMENT ON TABLE m_reseau_detection.geo_detec_operation
   IS 'Opération de détection de réseaux';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.idopedetec IS 'Identifiant unique de l''opération de détection dans la base de données';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.natres IS 'Nature du réseau détecté de l''opération';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.presta IS 'Prestataire de l''opération de détection';
+-- ctx IC ou OL
+-- COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.planurl IS 'Lien vers le fichier du plan';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.mouvrage IS 'Maitre d''ouvrage de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.dateope IS 'Date de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.date_sai IS 'Horodatage de l''intégration en base de l''objet';
@@ -363,6 +368,7 @@ CREATE TABLE m_reseau_detection.geo_detec_troncon
   natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
 -- diam
 -- materiau
+-- etat (Abandonné / En attente / En fonctionnement / Hors service) voir si domaine de valeur StaR-DT ou RAEPA
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   geom geometry(LineStringZ,2154),
@@ -384,6 +390,42 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.date_maj IS 'Horodatage d
 COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.geom IS 'Géométrie 3D de l''objet';
 
 ALTER TABLE m_reseau_detection.geo_detec_troncon ALTER COLUMN idtrdetec SET DEFAULT nextval('m_reseau_detection.geo_detec_reseau_id_seq'::regclass);
+
+
+-- #################################################################### CLASSE ENVELOPPE ###############################################
+
+-- Table: m_reseau_detection.geo_detec_enveloppe
+
+-- DROP TABLE m_reseau_detection.geo_detec_enveloppe;
+
+CREATE TABLE m_reseau_detection.geo_detec_enveloppe
+(
+  idenvdetec character varying(254) NOT NULL,
+  refope character varying(254) NOT NULL, -- fkey vers classe opedetec
+  idenvope integer NOT NULL,
+  insee character varying(5) NOT NULL,
+  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
+  date_sai timestamp without time zone NOT NULL DEFAULT now(),  
+  date_maj timestamp without time zone, 
+  geom geometry(LineString,2154),
+  CONSTRAINT geo_detec_enveloppe_pkey PRIMARY KEY (idenvdetec) 
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.geo_detec_enveloppe
+  IS 'Noeud de réseau (ouvrage/appareillage) détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.idenvdetec IS 'Identifiant unique de l''enveloppe de réseau détecté dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.idenvope IS 'Identifiant de l''enveloppe de réseau détecté dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.insee IS 'Code INSEE de la commmune';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.date_sai IS 'Horodatage de l''intégration en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.geom IS 'Géométrie de l''objet';
+
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe ALTER COLUMN idenvdetec SET DEFAULT nextval('m_reseau_detection.geo_detec_reseau_id_seq'::regclass);
 
  
   
@@ -422,7 +464,7 @@ ALTER TABLE m_reseau_detection.geo_detec_troncon
       REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
 
--- ## CLASSE GEOLOC        
+-- ## CLASSE GEOLOC DT-DICT      
 
 -- Foreign Key: m_reseau_detection.lt_classe_prec_xy_fkey
 
