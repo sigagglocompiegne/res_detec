@@ -721,7 +721,7 @@ INSERT INTO m_reseau_detection.geo_detec_troncon (idresdetec, idtrope, diametre,
 SELECT v_idresdetec,
 NEW.idtrope,
 NEW.diametre,
-CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END;
+CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END;
 
 RETURN NEW;
 
@@ -750,7 +750,7 @@ SET
 idresdetec=OLD.idresdetec,
 idtrope=NEW.idtrope,
 diametre=NEW.diametre,
-geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END
+geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END
 WHERE m_reseau_detection.geo_detec_troncon.idresdetec = OLD.idresdetec;
 
 RETURN NEW;
@@ -828,7 +828,7 @@ INSERT INTO m_reseau_detection.geo_detec_noeud (idresdetec, idndope, typenoeud, 
 SELECT v_idresdetec,
 NEW.idndope,
 NEW.typenoeud,
-CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END;
+CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END;
 
 RETURN NEW;
 
@@ -857,7 +857,7 @@ SET
 idresdetec=OLD.idresdetec,
 idndope=NEW.idndope,
 typenoeud=NEW.typenoeud,
-geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END
+geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END
 WHERE m_reseau_detection.geo_detec_noeud.idresdetec = OLD.idresdetec;
 
 RETURN NEW;
