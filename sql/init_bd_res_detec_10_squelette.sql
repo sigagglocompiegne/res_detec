@@ -10,6 +10,7 @@
 /* TO DO
 
 enveloppes (lien avec objet du réseau, vue, trigger ...)
+chk relation spatiale insee, verif point, noeud, troncon dans peri de l'opération
 
 */
 
@@ -250,7 +251,7 @@ CREATE TABLE m_reseau_detection.geo_detec_operation
   urlplan character varying(254),
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
-  geom geometry(MultiPolygon,2154),
+  geom geometry(MultiPolygon,2154) NOT NULL,
   CONSTRAINT geo_detec_operation_pkey PRIMARY KEY (idopedetec),
   CONSTRAINT refope_ukey UNIQUE (refope) 
 )
@@ -307,7 +308,7 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   horodatage timestamp without time zone NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
-  geom geometry(PointZ,2154),
+  geom geometry(PointZ,2154) NOT NULL,
   CONSTRAINT geo_detec_point_pkey PRIMARY KEY (idptdetec) 
 )
 WITH (
@@ -391,8 +392,7 @@ CREATE TABLE m_reseau_detection.geo_detec_noeud
   typenoeud character varying(5) NOT NULL,         -- fkey vers domaine de valeur
 -- symb
 -- symbangle
- 
-  geom geometry(PointZ,2154),
+  geom geometry(PointZ,2154) NOT NULL,
   CONSTRAINT geo_detec_noeud_pkey PRIMARY KEY (idresdetec) 
 )
 WITH (
@@ -422,7 +422,7 @@ CREATE TABLE m_reseau_detection.geo_detec_troncon
   diametre integer,
 -- materiau
 -- etat (Abandonné / En attente / En fonctionnement / Hors service) voir si domaine de valeur StaR-DT ou RAEPA
-  geom geometry(LineStringZ,2154),
+  geom geometry(LineStringZ,2154) NOT NULL,
   CONSTRAINT geo_detec_troncon_pkey PRIMARY KEY (idresdetec) 
 )
 WITH (
@@ -624,7 +624,17 @@ ORDER BY g.idresdetec;
 
 COMMENT ON VIEW m_reseau_detection.geo_v_detec_troncon_res
   IS 'Troncon de réseau detecté';
-  
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.idresdetec IS 'Identifiant unique de l''élément de réseau détecté dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.insee IS 'Code INSEE de la commmune';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.idtrope IS 'Identifiant du troncon de réseau détecté dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.diametre IS 'Diamètre nominal de la canalisation (en millimètres)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.clprecxy IS 'Classe de précision planimétrique (XY)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.clprecz IS 'Classe de précision altimétrique (Z)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.date_sai IS 'Horodatage de l''intégration en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.geom IS 'Géométrie de l''objet';  
 
 -- #################################################################### VUE NOEUD RES ###############################################
         
@@ -652,6 +662,17 @@ ORDER BY g.idresdetec;
 
 COMMENT ON VIEW m_reseau_detection.geo_v_detec_noeud_res
   IS 'Noeud de réseau detecté'; 
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.idresdetec IS 'Identifiant unique de l''élément de réseau détecté dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.insee IS 'Code INSEE de la commmune';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.idndope IS 'Identifiant du noeud de réseau détecté dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.typenoeud IS '';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprecxy IS 'Classe de précision planimétrique (XY)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprecz IS 'Classe de précision altimétrique (Z)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.date_sai IS 'Horodatage de l''intégration en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.geom IS 'Géométrie de l''objet';  
   
 
  
@@ -688,7 +709,7 @@ v_idresdetec := nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
 INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, clprecxy, clprecz, date_sai, date_maj)
 SELECT v_idresdetec,
 NEW.refope,
-NEW.insee,
+CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
@@ -700,7 +721,7 @@ INSERT INTO m_reseau_detection.geo_detec_troncon (idresdetec, idtrope, diametre,
 SELECT v_idresdetec,
 NEW.idtrope,
 NEW.diametre,
-NEW.geom;
+CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END;
 
 RETURN NEW;
 
@@ -714,7 +735,7 @@ m_reseau_detection.an_detec_reseau
 SET
 idresdetec=OLD.idresdetec,
 refope=NEW.refope,
-insee=NEW.insee,
+insee=CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 clprecxy=CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 clprecz=CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
@@ -729,7 +750,7 @@ SET
 idresdetec=OLD.idresdetec,
 idtrope=NEW.idtrope,
 diametre=NEW.diametre,
-geom=NEW.geom
+geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END
 WHERE m_reseau_detection.geo_detec_troncon.idresdetec = OLD.idresdetec;
 
 RETURN NEW;
@@ -795,7 +816,7 @@ v_idresdetec := nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
 INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, clprecxy, clprecz, date_sai, date_maj)
 SELECT v_idresdetec,
 NEW.refope,
-NEW.insee,
+CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
@@ -807,7 +828,7 @@ INSERT INTO m_reseau_detection.geo_detec_noeud (idresdetec, idndope, typenoeud, 
 SELECT v_idresdetec,
 NEW.idndope,
 NEW.typenoeud,
-NEW.geom;
+CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END;
 
 RETURN NEW;
 
@@ -821,7 +842,7 @@ m_reseau_detection.an_detec_reseau
 SET
 idresdetec=OLD.idresdetec,
 refope=NEW.refope,
-insee=NEW.insee,
+insee=CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 clprecxy=CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 clprecz=CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
@@ -836,7 +857,7 @@ SET
 idresdetec=OLD.idresdetec,
 idndope=NEW.idndope,
 typenoeud=NEW.typenoeud,
-geom=NEW.geom
+geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_within(NEW.geom,geom)) IS NULL THEN NULL ELSE NEW.geom END
 WHERE m_reseau_detection.geo_detec_noeud.idresdetec = OLD.idresdetec;
 
 RETURN NEW;
