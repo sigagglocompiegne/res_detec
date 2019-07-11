@@ -858,7 +858,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
-COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_v_detec_noeud_res() IS 'Fonction trigger pour mise à jour des entités depuis la vue de gestion des tronçons de réseau détectés';
+COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_v_detec_noeud_res() IS 'Fonction trigger pour mise à jour des entités depuis la vue de gestion des noeuds de réseau détectés';
 
 
 -- Trigger: t_t1_geo_v_detec_noeud_res on m_reseau_detection.detec_noeud_res
