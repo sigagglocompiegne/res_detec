@@ -30,6 +30,8 @@ ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXIS
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_troncon DROP CONSTRAINT IF EXISTS idresdetec_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_classe_prec_xy_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_classe_prec_z_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_classe_prec_xy_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_classe_prec_z_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS refope_fkey;
@@ -338,7 +340,9 @@ CREATE TABLE m_reseau_detection.an_detec_reseau
   idresdetec character varying(254) NOT NULL,
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
   insee character varying(5) NOT NULL,
-  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
+  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur
+  qualglocxy character varying (1) NOT NULL,  -- voir pour renommer différemment ex : clprecxy
+  qualglocz character varying (1) NOT NULL, -- voir pour renommer différemment ex : clprecz    
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   CONSTRAINT an_detec_reseau_pkey PRIMARY KEY (idresdetec) 
@@ -353,6 +357,8 @@ COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.idresdetec IS 'Identifiant 
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.qualglocxy IS '**********';
+COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.qualglocz IS '***********';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 
@@ -506,6 +512,23 @@ ALTER TABLE m_reseau_detection.geo_detec_point
       REFERENCES m_reseau_detection.lt_classe_prec (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
 
+-- Foreign Key: m_reseau_detection.lt_classe_prec_xy_fkey
+
+-- ALTER TABLE m_reseau_detection.an_detec_reseau DROP CONSTRAINT lt_classe_prec_xy_fkey;
+
+ALTER TABLE m_reseau_detection.an_detec_reseau
+  ADD CONSTRAINT lt_classe_prec_xy_fkey FOREIGN KEY (qualglocxy)
+      REFERENCES m_reseau_detection.lt_classe_prec (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- Foreign Key: m_reseau_detection.lt_classe_prec_z_fkey
+
+-- ALTER TABLE m_reseau_detection.an_detec_reseau DROP CONSTRAINT lt_classe_prec_z_fkey;   
+
+ALTER TABLE m_reseau_detection.an_detec_reseau               
+  ADD CONSTRAINT lt_classe_prec_z_fkey FOREIGN KEY (qualglocz)
+      REFERENCES m_reseau_detection.lt_classe_prec (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 
 -- #### FKEY ####
