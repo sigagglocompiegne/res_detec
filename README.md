@@ -1,6 +1,6 @@
 ![GeoCompiegnois](doc/img/Logo_web-GeoCompiegnois.png)
 
-# Détection des réseaux
+# Détection/géoréférencement des réseaux
 
 Ensemble des éléments constituant la mise en oeuvre d'une gestion patrimoniale des opérations de détection / géoréférencement des réseaux dans le cadre de la réglementation anti-endommagement (DT-DICT) :
 
