@@ -9,6 +9,8 @@
 
 /* TO DO
 
+enveloppes (lien avec objet du réseau, vue, trigger ...)
+
 */
 
 
@@ -19,10 +21,20 @@
 -- ####################################################################################################################################################
 
 
+-- trigger
+
+DROP TRIGGER IF EXISTS t_t1_geo_v_detec_noeud_res ON m_reseau_detection.geo_v_detec_noeud_res;
+DROP TRIGGER IF EXISTS t_t1_geo_v_detec_troncon_res ON m_reseau_detection.geo_v_detec_troncon_res;
+
+-- fonction trigger
+
+DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_v_detec_noeud_res();
+DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_v_detec_troncon_res();
+
 -- vue
 
---DROP VIEW IF EXISTS schema.vue;
-
+DROP VIEW IF EXISTS m_reseau_detection.geo_v_detec_troncon_res;
+DROP VIEW IF EXISTS m_reseau_detection.geo_v_detec_noeud_res;
 
 -- fkey
 
@@ -78,7 +90,7 @@ DROP SCHEMA IF EXISTS m_reseau_detection;
 CREATE SCHEMA m_reseau_detection;
 
 COMMENT ON SCHEMA m_reseau_detection
-  IS 'Détection des réseaux';
+  IS 'Détection/géoréférencement des réseaux (DT-DICT)';
 
 
 -- ####################################################################################################################################################
@@ -290,8 +302,8 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   p_gn numeric (5,3),
   prec_xy numeric (7,3) NOT NULL,
   prec_z_gn numeric (7,3) NOT NULL,
-  qualglocxy character varying (1) NOT NULL,  -- voir pour renommer différemment ex : clprecxy
-  qualglocz character varying (1) NOT NULL, -- voir pour renommer différemment ex : clprecz
+  qualglocxy character varying (1) NOT NULL DEFAULT 'C',  -- voir pour renommer différemment ex : clprecxy
+  qualglocz character varying (1) NOT NULL DEFAULT 'C', -- voir pour renommer différemment ex : clprecz
   horodatage timestamp without time zone NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
@@ -341,8 +353,8 @@ CREATE TABLE m_reseau_detection.an_detec_reseau
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
   insee character varying(5) NOT NULL,
   natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur
-  qualglocxy character varying (1) NOT NULL,  -- voir pour renommer différemment ex : clprecxy
-  qualglocz character varying (1) NOT NULL, -- voir pour renommer différemment ex : clprecz    
+  qualglocxy character varying (1) NOT NULL DEFAULT 'C',  -- voir pour renommer différemment ex : clprecxy
+  qualglocz character varying (1) NOT NULL DEFAULT 'C', -- voir pour renommer différemment ex : clprecz    
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   CONSTRAINT an_detec_reseau_pkey PRIMARY KEY (idresdetec) 
@@ -574,5 +586,287 @@ ALTER TABLE m_reseau_detection.geo_detec_point
   ADD CONSTRAINT refope_fkey FOREIGN KEY (refope)
       REFERENCES m_reseau_detection.geo_detec_operation (refope) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION; 
+
       
+
+-- ####################################################################################################################################################
+-- ###                                                                                                                                              ###
+-- ###                                                                        VUES                                                                  ###
+-- ###                                                                                                                                              ###
+-- ####################################################################################################################################################
+
+
+-- #################################################################### VUE TRONCON RES ###############################################
+        
+-- View: m_reseau_detection.geo_v_detec_troncon_res
+
+-- DROP VIEW m_reseau_detection.geo_v_detec_troncon_res;
+
+CREATE OR REPLACE VIEW m_reseau_detection.geo_v_detec_troncon_res AS 
+ SELECT 
+  g.idresdetec,
+  a.refope,
+  a.insee,
+  a.natres,
+  g.idtrope,
+  a.qualglocxy,
+  a.qualglocz, 
+  a.date_sai,
+  a.date_maj,
+  g.geom
+  
+FROM m_reseau_detection.geo_detec_troncon g
+LEFT JOIN m_reseau_detection.an_detec_reseau a ON g.idresdetec = a.idresdetec
+ORDER BY g.idresdetec;
+
+COMMENT ON VIEW m_reseau_detection.geo_v_detec_troncon_res
+  IS 'Troncon de réseau detecté';
+  
+
+-- #################################################################### VUE NOEUD RES ###############################################
+        
+-- View: m_reseau_detection.geo_v_detec_noeud_res
+
+-- DROP VIEW m_reseau_detection.geo_v_detec_noeud_res;
+
+CREATE OR REPLACE VIEW m_reseau_detection.geo_v_detec_noeud_res AS 
+ SELECT 
+  g.idresdetec,
+  a.refope,
+  a.insee,
+  a.natres,
+  g.idndope,
+  g.typenoeud,
+  a.qualglocxy,
+  a.qualglocz, 
+  a.date_sai,
+  a.date_maj,
+  g.geom
+  
+FROM m_reseau_detection.geo_detec_noeud g
+LEFT JOIN m_reseau_detection.an_detec_reseau a ON g.idresdetec = a.idresdetec
+ORDER BY g.idresdetec;
+
+COMMENT ON VIEW m_reseau_detection.geo_v_detec_noeud_res
+  IS 'Noeud de réseau detecté'; 
+  
+
+ 
+  
+-- ####################################################################################################################################################
+-- ###                                                                                                                                              ###
+-- ###                                                                      TRIGGER                                                                 ###
+-- ###                                                                                                                                              ###
+-- ####################################################################################################################################################
+
+
+
+-- #################################################################### FONCTION TRIGGER - GEO_V_TRONCON_RES ###################################################
+
+-- Function: m_reseau_detection.ft_m_geo_v_detec_troncon_res()
+
+-- DROP FUNCTION m_reseau_detection.ft_m_geo_v_detec_troncon_res();
+
+CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_v_detec_troncon_res()
+  RETURNS trigger AS
+$BODY$
+
+--déclaration variable pour stocker la séquence des id raepa
+DECLARE v_idresdetec character varying(254);
+
+BEGIN
+
+-- INSERT
+IF (TG_OP = 'INSERT') THEN
+
+v_idresdetec := nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
+
+-- an_detec_reseau
+INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, qualglocxy, qualglocz, date_sai, date_maj)
+SELECT v_idresdetec,
+NEW.refope,
+NEW.insee,
+CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+CASE WHEN NEW.qualglocxy IS NULL THEN 'C' ELSE NEW.qualglocxy END,
+CASE WHEN NEW.qualglocz IS NULL THEN 'C' ELSE NEW.qualglocz END,
+now(),
+NULL;
+
+-- geo_detec_troncon
+INSERT INTO m_reseau_detection.geo_detec_troncon (idresdetec, idtrope, geom)
+SELECT v_idresdetec,
+NEW.idtrope,
+NEW.geom;
+
+RETURN NEW;
+
+
+-- UPDATE
+ELSIF (TG_OP = 'UPDATE') THEN
+
+-- an_detec_reseau
+UPDATE
+m_reseau_detection.an_detec_reseau
+SET
+idresdetec=OLD.idresdetec,
+refope=NEW.refope,
+insee=NEW.insee,
+natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+qualglocxy=CASE WHEN NEW.qualglocxy IS NULL THEN 'C' ELSE NEW.qualglocxy END,
+qualglocz=CASE WHEN NEW.qualglocz IS NULL THEN 'C' ELSE NEW.qualglocz END,
+date_sai=OLD.date_sai,
+date_maj=now()
+WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
+
+-- geo_detec_troncon
+UPDATE
+m_reseau_detection.geo_detec_troncon
+SET
+idresdetec=OLD.idresdetec,
+idtrope=NEW.idtrope,
+geom=NEW.geom
+WHERE m_reseau_detection.geo_detec_troncon.idresdetec = OLD.idresdetec;
+
+RETURN NEW;
+
+
+-- DELETE
+ELSIF (TG_OP = 'DELETE') THEN
+
+-- geo_detec_troncon
+DELETE FROM m_reseau_detection.geo_detec_troncon
+WHERE m_reseau_detection.geo_detec_troncon.idresdetec = OLD.idresdetec;
+
+-- an_detec_reseau
+DELETE FROM m_reseau_detection.an_detec_reseau
+WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
+
+
+RETURN NEW;
            
+END IF;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_v_detec_troncon_res() IS 'Fonction trigger pour mise à jour des entités depuis la vue de gestion des tronçons de réseau détectés';
+
+
+-- Trigger: t_t1_geo_v_detec_troncon_res on m_reseau_detection.detec_troncon_res
+
+-- DROP TRIGGER t_t1_detec_troncon_res ON m_reseau_detection.detec_troncon_res;
+
+CREATE TRIGGER t_t1_geo_v_detec_troncon_res
+  INSTEAD OF INSERT OR UPDATE OR DELETE
+  ON m_reseau_detection.geo_v_detec_troncon_res
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_v_detec_troncon_res();
+  
+  
+
+-- #################################################################### FONCTION TRIGGER - GEO_V_NOEUD_RES ###################################################
+
+-- Function: m_reseau_detection.ft_m_geo_v_detec_noeud_res()
+
+-- DROP FUNCTION m_reseau_detection.ft_m_geo_v_detec_noeud_res();
+
+CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_v_detec_noeud_res()
+  RETURNS trigger AS
+$BODY$
+
+--déclaration variable pour stocker la séquence des id raepa
+DECLARE v_idresdetec character varying(254);
+
+BEGIN
+
+-- INSERT
+IF (TG_OP = 'INSERT') THEN
+
+v_idresdetec := nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
+
+-- an_detec_reseau
+INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, qualglocxy, qualglocz, date_sai, date_maj)
+SELECT v_idresdetec,
+NEW.refope,
+NEW.insee,
+CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+CASE WHEN NEW.qualglocxy IS NULL THEN 'C' ELSE NEW.qualglocxy END,
+CASE WHEN NEW.qualglocz IS NULL THEN 'C' ELSE NEW.qualglocz END,
+now(),
+NULL;
+
+-- geo_detec_noeud
+INSERT INTO m_reseau_detection.geo_detec_noeud (idresdetec, idndope, typenoeud, geom)
+SELECT v_idresdetec,
+NEW.idndope,
+NEW.typenoeud,
+NEW.geom;
+
+RETURN NEW;
+
+
+-- UPDATE
+ELSIF (TG_OP = 'UPDATE') THEN
+
+-- an_detec_reseau
+UPDATE
+m_reseau_detection.an_detec_reseau
+SET
+idresdetec=OLD.idresdetec,
+refope=NEW.refope,
+insee=NEW.insee,
+natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+qualglocxy=CASE WHEN NEW.qualglocxy IS NULL THEN 'C' ELSE NEW.qualglocxy END,
+qualglocz=CASE WHEN NEW.qualglocz IS NULL THEN 'C' ELSE NEW.qualglocz END,
+date_sai=OLD.date_sai,
+date_maj=now()
+WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
+
+-- geo_detec_noeud
+UPDATE
+m_reseau_detection.geo_detec_noeud
+SET
+idresdetec=OLD.idresdetec,
+idndope=NEW.idndope,
+typenoeud=NEW.typenoeud,
+geom=NEW.geom
+WHERE m_reseau_detection.geo_detec_noeud.idresdetec = OLD.idresdetec;
+
+RETURN NEW;
+
+
+-- DELETE
+ELSIF (TG_OP = 'DELETE') THEN
+
+-- geo_detec_noeud
+DELETE FROM m_reseau_detection.geo_detec_noeud
+WHERE m_reseau_detection.geo_detec_noeud.idresdetec = OLD.idresdetec;
+
+-- an_detec_reseau
+DELETE FROM m_reseau_detection.an_detec_reseau
+WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
+
+
+RETURN NEW;
+           
+END IF;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_v_detec_noeud_res() IS 'Fonction trigger pour mise à jour des entités depuis la vue de gestion des tronçons de réseau détectés';
+
+
+-- Trigger: t_t1_geo_v_detec_noeud_res on m_reseau_detection.detec_noeud_res
+
+-- DROP TRIGGER t_t1_detec_noeud_res ON m_reseau_detection.detec_noeud_res;
+
+CREATE TRIGGER t_t1_geo_v_detec_noeud_res
+  INSTEAD OF INSERT OR UPDATE OR DELETE
+  ON m_reseau_detection.geo_v_detec_noeud_res
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_v_detec_noeud_res();                 
