@@ -9,8 +9,22 @@
 
 /* TO DO
 
+
+REVOIR LE TRIGGER POUR AMELIORER LE RECLASSEMENT EN CLPREC (prb avec les valeurs NULL mal interprétées)
+
+
+zones d'exclusion (inacessible)
+habillage (txt, cote, hachure ...)
 enveloppes (lien avec objet du réseau, vue, trigger ...)
-chk relation spatiale insee, verif point, noeud, troncon dans peri de l'opération
+chk relation spatiale, verif point, noeud, troncon dans peri une opération
+chk relation spatiale, verif point, noeud, troncon dans peri de l'opération référencée
+chk neoud/troncon de natres = natres du ptleve
+voir si on considère qu'on peut avoir n plans autocad pour 1 opération, si oui, prévoir table media séparée
+statut : voir si on conserve l'info en considérant que cette info n'est pas possible en retour d'IC ou OL, mais bien uniquement en retour de DT ou DICT par l'exploitant
+==> question en lien avec le volet urbanisation de la base detection avec celle de gestion des réseaux
+
+
+topologie : segmentation troncon par ptlevé ????
 
 */
 
@@ -43,10 +57,16 @@ ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXIS
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_troncon DROP CONSTRAINT IF EXISTS idresdetec_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_clprec_xy_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_clprec_z_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_clprec_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_clprec_xy_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_clprec_z_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_clprec_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_operation DROP CONSTRAINT IF EXISTS lt_typeope_fkey;
+--ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_typeleve_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_operation DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_statut_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS refope_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS refope_fkey;
 
@@ -65,6 +85,9 @@ DROP TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe;
 
 DROP TABLE IF EXISTS m_reseau_detection.lt_natres;
 DROP TABLE IF EXISTS m_reseau_detection.lt_clprec;
+--DROP TABLE IF EXISTS m_reseau_detection.lt_typeleve;
+DROP TABLE IF EXISTS m_reseau_detection.lt_statut;
+DROP TABLE IF EXISTS m_reseau_detection.lt_typeope;
 
 
 -- sequence
@@ -177,7 +200,101 @@ INSERT INTO m_reseau_detection.lt_clprec(
 ('B','Classe B','Classe de précision supérieure à 40 cm et inférieure à 1,50 m'),
 ('C','Classe C','Classe de précision supérieure à 1,50 m');
 
+/*
+-- ### domaine de valeur hérité du standard StaR-DT
 
+-- Table: m_reseau_detection.lt_typeleve
+
+-- DROP TABLE m_reseau_detection.lt_typeleve;
+
+CREATE TABLE m_reseau_detection.lt_typeleve
+(
+  code character varying(1) NOT NULL,
+  valeur character varying(80) NOT NULL,
+  definition character varying(255),
+  CONSTRAINT lt_typeleve_pkey PRIMARY KEY (code)
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.lt_typeleve
+  IS 'Type de levé';
+COMMENT ON COLUMN m_reseau_detection.lt_typeleve.code IS 'Code de la liste énumérée relative au type de levé';
+COMMENT ON COLUMN m_reseau_detection.lt_typeleve.valeur IS 'Valeur de la liste énumérée relative au type de levé';
+COMMENT ON COLUMN m_reseau_detection.lt_typeleve.definition IS 'Définition de la liste énumérée relative au type de levé';
+
+INSERT INTO m_reseau_detection.lt_typeleve(
+            code, valeur, definition)
+    VALUES
+('C','ChargeGeneratrice','Charge à la génératrice'),
+('G','AltitudeGeneratrice','Altitude à la génératrice'),
+('F','AltitudeFluide','Altitude du fluide');
+*/
+
+-- ### domaine de valeur hérité du standard StaR-DT, lui même d'INSPIRE
+
+-- Table: m_reseau_detection.lt_statut
+
+-- DROP TABLE m_reseau_detection.lt_statut;
+
+CREATE TABLE m_reseau_detection.lt_statut
+(
+  code character varying(2) NOT NULL,
+  valeur character varying(80) NOT NULL,
+  inspire character varying(20),
+  definition character varying(255),
+  CONSTRAINT lt_statut_pkey PRIMARY KEY (code)
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.lt_statut
+  IS 'Statut de l''objet concernant son état et son usage';
+COMMENT ON COLUMN m_reseau_detection.lt_statut.code IS 'Code de la liste énumérée relative au statut de l''objet concernant son état et son usage';
+COMMENT ON COLUMN m_reseau_detection.lt_statut.valeur IS 'Valeur de la liste énumérée relative au statut de l''objet concernant son état et son usage';
+COMMENT ON COLUMN m_reseau_detection.lt_statut.inspire IS 'Code INSPIRE de la liste énumérée relative au statut de l''objet concernant son état et son usage';
+COMMENT ON COLUMN m_reseau_detection.lt_statut.definition IS 'Définition de la liste énumérée relative au statut de l''objet concernant son état et son usage';
+
+INSERT INTO m_reseau_detection.lt_statut(
+            code, valeur, inspire, definition)
+    VALUES
+('00','Non renseigné',NULL,'Statut non renseigné'),
+('01','Déclassé','decommissionned','Arrêt définitif d''exploitation si non enregistré au GU'),
+('02','En cours de construction/modification','underConstruction','Modifications en cours sur le réseau/ouvrage'),
+('03','En projet','projected','Modification ou une extension de l''ouvrage envisagée'),
+('04','Opérationnel','functionnal','Actif- Ouvrages ou tronçons d''ouvrages exploités');
+
+
+-- Table: m_reseau_detection.lt_typeope
+
+-- DROP TABLE m_reseau_detection.lt_typeope;
+
+CREATE TABLE m_reseau_detection.lt_typeope
+(
+  code character varying(2) NOT NULL,
+  valeur character varying(80) NOT NULL,
+  definition character varying(255),
+  CONSTRAINT lt_typeope_pkey PRIMARY KEY (code)
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.lt_typeope
+  IS 'Type d''opération de détection des réseaux enterrés';
+COMMENT ON COLUMN m_reseau_detection.lt_typeope.code IS 'Code de la liste énumérée relative au type d''opération de détection des réseaux enterrés';
+COMMENT ON COLUMN m_reseau_detection.lt_typeope.valeur IS 'Valeur de la liste énumérée relative au type d''opération de détection des réseaux enterrés';
+COMMENT ON COLUMN m_reseau_detection.lt_typeope.definition IS 'Définition de la liste énumérée relative au type d''opération de détection des réseaux enterrés';
+
+INSERT INTO m_reseau_detection.lt_typeope(
+            code, valeur, definition)
+    VALUES
+('00','Non renseigné','Non renseigné'),
+('IC','Investigation complémentaire','Opération menée dans le cadre de travaux par le maitre d''ouvrage'),
+('OL','Opération de localisation','Opération menée dans le cadre de démarches d''amélioration continue par l''exploitant du réseau'),
+('99','Autre','Autre');
 
 
 -- ####################################################################################################################################################
@@ -242,10 +359,10 @@ CREATE TABLE m_reseau_detection.geo_detec_operation
 (
   idopedetec character varying(254) NOT NULL,
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
+  typeope character varying(2) NOT NULL, -- fkey vers domaine de valeur lt_typeope
   natres character varying(7) NOT NULL, -- fkey vers domaine de valeur lt_natres
   mouvrage character varying(80) NOT NULL,
   presta character varying(80) NOT NULL,
--- voir pour préciser le contexte (IC ou OL)
   dateope date NOT NULL,
   nomplan character varying(80),
   urlplan character varying(254),
@@ -263,13 +380,13 @@ COMMENT ON TABLE m_reseau_detection.geo_detec_operation
   IS 'Opération de détection de réseaux';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.idopedetec IS 'Identifiant unique de l''opération de détection dans la base de données';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.typeope IS 'Type d''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.natres IS 'Nature du réseau faisant l''objet de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.mouvrage IS 'Maitre d''ouvrage de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.presta IS 'Prestataire de l''opération de détection';
--- ctx IC ou OL
+COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.dateope IS 'Date de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.nomplan IS 'Nom du fichier du plan';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.urlplan IS 'Lien vers le fichier du plan';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.mouvrage IS 'Maitre d''ouvrage de l''opération de détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.dateope IS 'Date de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.geom IS 'Géométrie de l''objet';
@@ -291,7 +408,7 @@ CREATE TABLE m_reseau_detection.geo_detec_point
 (
   idptdetec character varying(254) NOT NULL,
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
-  numptope character varying(30) NOT NULL,  -- voir si conserver
+  numptope character varying(30) NOT NULL,
   insee character varying(5) NOT NULL,
   typedetec character varying(2) NOT NULL, -- fkey vers domaine de valeur
   methode character varying(80) NOT NULL,  
@@ -299,12 +416,15 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   x numeric(10,3) NOT NULL,
   y numeric(11,3) NOT NULL,
   z_gn numeric (7,3) NOT NULL,
-  z numeric (7,3),
-  p_gn numeric (5,3),
+  z_tn numeric (7,3),
+  c numeric (5,3),
   prec_xy numeric (7,3) NOT NULL,
   prec_z_gn numeric (7,3) NOT NULL,
-  clprecxy character varying (1) NOT NULL DEFAULT 'C',  -- voir pour renommer différemment ex : clprecxy
-  clprecz character varying (1) NOT NULL DEFAULT 'C', -- voir pour renommer différemment ex : clprecz
+--  prec_z_tn
+--  prec_z  
+  clprecxy character varying (1) NOT NULL DEFAULT 'C',  -- fkey vers domaine de valeur
+  clprecz character varying (1) NOT NULL DEFAULT 'C', -- fkey vers domaine de valeur
+  clprec character varying (1) NOT NULL, -- fkey vers domaine de valeur #resultat combinaison prec xy et z généré par trigger
   horodatage timestamp without time zone NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
@@ -321,18 +441,19 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_point.idptdetec IS 'Identifiant u
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.numptope IS 'Numéro du point dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.insee IS 'Code INSEE de la commmune';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_point.typedetec IS 'Type de ';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.typedetec IS '';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.methode IS 'Méthode employée pour la détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.natres IS 'Nature du réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.x IS 'Coordonnée X Lambert 93 (en mètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.y IS 'Coordonnée X Lambert 93 (en mètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z_gn IS 'Altimétrie Z de la génératrice (supérieure si enterrée, inférieure si aérienne) du réseau en mètre NGF)';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z IS 'Altimétrie Z du terrain affleurant en mètre NGF)';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_point.p_gn IS 'Profondeur de la génératrice du réseau en mètre';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.z_tn IS 'Altimétrie Z du terrain naturel en mètre NGF)';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.c IS 'Charge sur réseau en mètre';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_xy IS 'Précision absolue en planimètre (en centimètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.prec_z_gn IS 'Précision absolue en altimétrie de la génératrice supérieure (en centimètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.clprecxy IS 'Classe de précision planimétrique (XY)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.clprecz IS 'Classe de précision altimétrique (Z)';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_point.clprec IS 'Classe de précision planimétrique et altimétrique (XYZ)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.horodatage IS 'Horodatage détection/géoréfécement du point';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_point.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
@@ -353,9 +474,11 @@ CREATE TABLE m_reseau_detection.an_detec_reseau
   idresdetec character varying(254) NOT NULL,
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
   insee character varying(5) NOT NULL,
-  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur
-  clprecxy character varying (1) NOT NULL DEFAULT 'C',  -- voir pour renommer différemment ex : clprecxy
-  clprecz character varying (1) NOT NULL DEFAULT 'C', -- voir pour renommer différemment ex : clprecz    
+  natres character varying(7) NOT NULL, -- fkey vers domaine de valeur
+  statut character varying(2) NOT NULL, -- fkey vers domaine de valeur
+  clprecxy character varying (1) NOT NULL DEFAULT 'C', -- fkey vers domaine de valeur
+  clprecz character varying (1) NOT NULL DEFAULT 'C', -- fkey vers domaine de valeur
+  clprec character varying (1) NOT NULL, -- fkey vers domaine de valeur #resultat combinaison prec xy et z généré par trigger     
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   CONSTRAINT an_detec_reseau_pkey PRIMARY KEY (idresdetec) 
@@ -370,8 +493,10 @@ COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.idresdetec IS 'Identifiant 
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.statut IS 'Statut de l''objet concernant son état et son usage';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.clprecxy IS 'Classe de précision planimétrique (XY)';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.clprecz IS 'Classe de précision altimétrique (Z)';
+COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.clprec IS 'Classe de précision planimétrique et altimétrique (XYZ)';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.an_detec_reseau.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 
@@ -421,7 +546,6 @@ CREATE TABLE m_reseau_detection.geo_detec_troncon
   idtrope integer NOT NULL,
   diametre integer,
 -- materiau
--- etat (Abandonné / En attente / En fonctionnement / Hors service) voir si domaine de valeur StaR-DT ou RAEPA
   geom geometry(LineStringZ,2154) NOT NULL,
   CONSTRAINT geo_detec_troncon_pkey PRIMARY KEY (idresdetec) 
 )
@@ -451,7 +575,7 @@ CREATE TABLE m_reseau_detection.geo_detec_enveloppe
   refope character varying(254) NOT NULL, -- fkey vers classe opedetec
   idenvope integer NOT NULL,
   insee character varying(5) NOT NULL,
-  natres character varying(7) NOT NULL,         -- fkey vers domaine de valeur  
+  natres character varying(7) NOT NULL, -- fkey vers domaine de valeur  
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   geom geometry(LineString,2154),
@@ -505,6 +629,37 @@ ALTER TABLE m_reseau_detection.an_detec_reseau
       REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
       
+-- Foreign Key: m_reseau_detection.lt_natres_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_operation DROP CONSTRAINT lt_natres_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_operation               
+  ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
+      REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- ## STATUT
+
+-- Foreign Key: m_reseau_detection.lt_statut_fkey
+
+-- ALTER TABLE m_reseau_detection.an_detec_reseau DROP CONSTRAINT lt_statut_fkey;   
+
+ALTER TABLE m_reseau_detection.an_detec_reseau               
+  ADD CONSTRAINT lt_statut_fkey FOREIGN KEY (statut)
+      REFERENCES m_reseau_detection.lt_statut (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;      
+
+     
+-- ## TYPE OPE
+
+-- Foreign Key: m_reseau_detection.lt_typeope_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_operation DROP CONSTRAINT lt_typeope_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_operation               
+  ADD CONSTRAINT lt_typeope_fkey FOREIGN KEY (typeope)
+      REFERENCES m_reseau_detection.lt_typeope (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION; 
 
 -- ## CLASSE GEOLOC DT-DICT      
 
@@ -526,6 +681,15 @@ ALTER TABLE m_reseau_detection.geo_detec_point
       REFERENCES m_reseau_detection.lt_clprec (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
 
+-- Foreign Key: m_reseau_detection.lt_clprec_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_point DROP CONSTRAINT lt_clprec_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_point               
+  ADD CONSTRAINT lt_clprec_fkey FOREIGN KEY (clprec)
+      REFERENCES m_reseau_detection.lt_clprec (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
 -- Foreign Key: m_reseau_detection.lt_clprec_xy_fkey
 
 -- ALTER TABLE m_reseau_detection.an_detec_reseau DROP CONSTRAINT lt_clprec_xy_fkey;
@@ -544,6 +708,14 @@ ALTER TABLE m_reseau_detection.an_detec_reseau
       REFERENCES m_reseau_detection.lt_clprec (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
 
+-- Foreign Key: m_reseau_detection.lt_clprec_fkey
+
+-- ALTER TABLE m_reseau_detection.an_detec_reseau DROP CONSTRAINT lt_clprec_fkey;   
+
+ALTER TABLE m_reseau_detection.an_detec_reseau               
+  ADD CONSTRAINT lt_clprec_fkey FOREIGN KEY (clprec)
+      REFERENCES m_reseau_detection.lt_clprec (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 -- #### FKEY ####
 
@@ -610,10 +782,12 @@ CREATE OR REPLACE VIEW m_reseau_detection.geo_v_detec_troncon_res AS
   a.refope,
   a.insee,
   a.natres,
+  a.statut,
   g.idtrope,
   g.diametre,
   a.clprecxy,
-  a.clprecz, 
+  a.clprecz,
+  a.clprec, 
   a.date_sai,
   a.date_maj,
   g.geom
@@ -628,10 +802,12 @@ COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.idresdetec IS 'Iden
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.statut IS 'Statut de l''objet selon son état et son usage';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.idtrope IS 'Identifiant du troncon de réseau détecté dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.diametre IS 'Diamètre nominal de la canalisation (en millimètres)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.clprecxy IS 'Classe de précision planimétrique (XY)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.clprecz IS 'Classe de précision altimétrique (Z)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.clprec IS 'Classe de précision planimétrique et altimétrique (XYZ)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_troncon_res.geom IS 'Géométrie de l''objet';  
@@ -648,10 +824,12 @@ CREATE OR REPLACE VIEW m_reseau_detection.geo_v_detec_noeud_res AS
   a.refope,
   a.insee,
   a.natres,
+  a.statut,
   g.idndope,
   g.typenoeud,
   a.clprecxy,
-  a.clprecz, 
+  a.clprecz,
+  a.clprec, 
   a.date_sai,
   a.date_maj,
   g.geom
@@ -666,10 +844,12 @@ COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.idresdetec IS 'Identi
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.refope IS 'Référence de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.natres IS 'Nature du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.statut IS 'Statut de l''objet selon son état et son usage';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.idndope IS 'Identifiant du noeud de réseau détecté dans l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.typenoeud IS '';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprecxy IS 'Classe de précision planimétrique (XY)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprecz IS 'Classe de précision altimétrique (Z)';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprec IS 'Classe de précision planimétrique et altimétrique (XYZ)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.geom IS 'Géométrie de l''objet';  
@@ -706,13 +886,15 @@ IF (TG_OP = 'INSERT') THEN
 v_idresdetec := nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
 
 -- an_detec_reseau
-INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, clprecxy, clprecz, date_sai, date_maj)
+INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, statut, clprecxy, clprecz, clprec, date_sai, date_maj)
 SELECT v_idresdetec,
 NEW.refope,
-CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
+CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_arc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
+CASE WHEN ((NEW.clprecxy IN (NULL,'C')) OR (NEW.clprecz IN (NULL,'C'))) THEN 'C' WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' ELSE 'B' END,
 now(),
 NULL;
 
@@ -735,10 +917,13 @@ m_reseau_detection.an_detec_reseau
 SET
 idresdetec=OLD.idresdetec,
 refope=NEW.refope,
-insee=CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
+insee=CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_arc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+statut=CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 clprecxy=CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 clprecz=CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
+--clprec=CASE WHEN ((NEW.clprecxy IN (NULL,'C')) OR (NEW.clprecz IN (NULL,'C'))) THEN 'C' WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' ELSE 'B' END,
+clprec=CASE WHEN WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B'))) THEN 'C' WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' ELSE 'C' END,
 date_sai=OLD.date_sai,
 date_maj=now()
 WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
@@ -813,13 +998,15 @@ IF (TG_OP = 'INSERT') THEN
 v_idresdetec := nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
 
 -- an_detec_reseau
-INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, clprecxy, clprecz, date_sai, date_maj)
+INSERT INTO m_reseau_detection.an_detec_reseau (idresdetec, refope, insee, natres, statut, clprecxy, clprecz, clprec, date_sai, date_maj)
 SELECT v_idresdetec,
 NEW.refope,
-CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
+CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_arc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
+CASE WHEN NEW.clprec IS NULL THEN 'C' ELSE NEW.clprec END,
 now(),
 NULL;
 
@@ -842,10 +1029,12 @@ m_reseau_detection.an_detec_reseau
 SET
 idresdetec=OLD.idresdetec,
 refope=NEW.refope,
-insee=CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_apc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
+insee=CASE WHEN NEW.insee IS NULL THEN (SELECT insee FROM r_osm.geo_vm_osm_commune_arc WHERE st_intersects(NEW.geom,geom)) ELSE NEW.insee END,
 natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
+statut=CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 clprecxy=CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 clprecz=CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
+clprec=CASE WHEN NEW.clprec IS NULL THEN 'C' ELSE NEW.clprec END,
 date_sai=OLD.date_sai,
 date_maj=now()
 WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
