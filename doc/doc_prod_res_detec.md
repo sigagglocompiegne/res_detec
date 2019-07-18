@@ -51,6 +51,21 @@ Désigne les points de géodetection/géoréférencement du réseau
 |ELEC| Electricité | #FF0000 |
 |ELECECL| Eclairage public | #FF0000 |
 |ELECSLT| Signalisation lumineuse tricolore | #FF0000 |
+|ELECTRD| Eléctricité transport/distribution | #FF0000 |
+|GAZ| Gaz | #FFFF00 |
+|CHIM|Produits chimiques|#F99707|
+|AEP|Eau potable|#00B0F0|
+|ASS|Assainissement et pluvial|#663300|
+|ASSEP|Eaux pluviales|#663300|
+|ASSEU|Eaux usées|#663300|
+|ASSUN|Réseau unitaire|#663300|
+|CHAU|Chauffage et climatisation|#7030A0|
+|COM|Télécom|#00FF00|
+|DECH|Déchets|#663300|
+|INCE|Incendie|#00B0F0|
+|PINS|Protection Inondation-Submersion|#663300|
+|MULT|Multi réseaux|#FF00FF|
+
 
 
 
