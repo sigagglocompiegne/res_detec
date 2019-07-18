@@ -17,6 +17,8 @@ Désigne les points de géodetection/géoréférencement du réseau
 |refope|Référence de l'opération de détection|Texte(254)| x |  |
 |refptope|Référence du point levé dans l'opération de détection|Texte(30)| x | pt2.3 |
 |insee|Code INSEE de la commmune|Texte(5)| x | 60159 |
+|typedetec|Type de géodétection/géoréférencement|Texte(2) = Liste "Type de détection | OUV |
+|methode|Méthode employée pour la détection|Texte(254)| Acoustique |
 |natres|Nature du réseau détecté|Texte(7) = Liste "Nature du réseau"| x | ELECECL |
 |x|Coordonnée X Lambert 93 (en mètres)| numeric | x | 687186,623 |
 |y|Coordonnée Y Lambert 93 (en mètres)| numeric | x | 6924318,527 |
