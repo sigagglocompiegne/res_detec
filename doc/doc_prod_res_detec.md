@@ -25,7 +25,7 @@
 
 ### Opération de détection de réseaux
 
-Désigne une périmètre d'opération de géodetection/géoréférencement de réseau
+Désigne un périmètre d'opération de géodetection/géoréférencement de réseau
 
 |Attribut | Définition | Type informatique | dqsd | Exemple | 
 |:---|:---|:---|:---|:---|    
