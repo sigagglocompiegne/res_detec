@@ -15,7 +15,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |Attribut | Définition | Type informatique | dqsd | Exemple | 
 |:---|:---|:---|:---|:---|    
 |refptope|Référence du point levé dans l'opération de détection|Texte(30)| x | pt2.3 |
-|refope|Référence de l'opération de détection|Texte(254)| x | refdecommande |
+|refope|Référence de l'opération de détection|Texte(254)| x |  |
 |insee|Code INSEE de la commmune|Texte(5)| x | 60159 |
 |natres|Nature du réseau détecté|Texte(7) = Liste "Nature du réseau"| x | ELECECL |
 |x|Coordonnée X Lambert 93 (en mètres)| numeric | x | 687186,623 |
