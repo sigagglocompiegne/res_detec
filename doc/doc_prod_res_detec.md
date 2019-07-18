@@ -24,7 +24,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |z_tn|Altimétrie Z NGF du terrain naturel (en mètres)| numeric |  | 36,745 |
 |c|Charge sur réseau (en mètres)| numeric |  | 1,324 |
 |prec_xy|Précision absolue en planimètre (en mètres)| numeric | x | 0,152 |
-|prec_z_gn|Précision absolue en altimétrie (en mètres)| numeric | x | 0,223 |
+|prec_z_gn|Précision absolue en altimétrie (en mètres)| numeric | x | 0,523 |
 |clprecxy|Classe de précision planimétrique (XY)| Texte(1) = Liste "Classe de précision" | x | A |
 |clprecz|Classe de précision altimétrique (Z)| Texte(1) = Liste "Classe de précision" | x | B |
 |clprec|Classe de précision planimétrique (XY) et altimétrique (Z)| Texte(1) = Liste "Classe de précision" | x | B |
