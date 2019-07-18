@@ -6,9 +6,11 @@
 
 Désigne les points de géodetection/géoréférencement du réseau
 
-|attribut | Définition | Type informatique | exemple | 
+|attribut | Définition | Type informatique | Exemple | 
 |:---|:---|:---|:---|    
-|idptope|Référence du point levé dans l'opération|Texte(254)| ELECECL2.3 |
-|validede|!|!|!|
+|refptope|Référence du point levé dans l'opération de détection|Texte(30)| pt2.3 |
+|refope|Référence de l'opération de détection|Texte(254)| refdecommande |
+|insee|Code INSEE de la commmune|Texte(5)| 60159 |
+|natres|Nature du réseau détecté|Liste Nature du réseau| ELECECL |
 
 
