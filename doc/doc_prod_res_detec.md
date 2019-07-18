@@ -4,7 +4,7 @@
 
 ## tables
 
-|attribut | Définition | Code | Valeur | Type informatique | obli |
+|attribut | Définition | Type informatique | obli | Code | Valeur | 
 |:---|:---|:---|:---|:---|:---|    
 |statut|!|!|!|!|!|
 |validede|!|!|!|!|!|
