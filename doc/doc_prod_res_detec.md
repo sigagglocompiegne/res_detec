@@ -2,11 +2,17 @@
 
 # Documentation des livrables produits pour les opérations de détection des réseaux
 
-## Point levé
+## Fichiers
+
+
+
+## Structure des données
+
+### point levé
 
 Désigne les points de géodetection/géoréférencement du réseau
 
-|attribut | Définition | Type informatique | dqsd | Exemple | 
+|Attribut | Définition | Type informatique | dqsd | Exemple | 
 |:---|:---|:---|:---|:---|    
 |refptope|Référence du point levé dans l'opération de détection|Texte(30)| x | pt2.3 |
 |refope|Référence de l'opération de détection|Texte(254)| x | refdecommande |
