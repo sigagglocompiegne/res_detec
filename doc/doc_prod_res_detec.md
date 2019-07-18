@@ -20,9 +20,9 @@
 
 ### Topologie
 
-pt levé d'une opération et dans le périmètre de l'opération
-pt levé est positionné sur un ouvrage de réseau
-troncon de réseau 
+* les points levés et ouvrages de réseaux sont contenusdans le périmètre de l'opération
+* un point levé est positionné sur un noeud d'un ouvrage de réseau
+* un point levé peut constitué un point sécant d'un troncon de réseau
 
 ## Structure des données
 
