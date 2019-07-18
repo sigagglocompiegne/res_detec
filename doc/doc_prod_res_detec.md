@@ -21,7 +21,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |x|Coordonnée X Lambert 93 (en mètres)| numeric | x | 687186,623 |
 |y|Coordonnée Y Lambert 93 (en mètres)| numeric | x | 6924318,527 |
 |zgn|Altimétrie Z NGF de la génératrice (supérieure si enterrée, inférieure si aérienne) du réseau (en mètres)| numeric | x | 35,421 |
-|z_tn|Altimétrie Z NGF du terrain naturel (en mètres)| numeric |  | 36,745 |
+|ztn|Altimétrie Z NGF du terrain naturel (en mètres)| numeric |  | 36,745 |
 |c|Charge sur réseau (en mètres)| numeric |  | 1,324 |
 |precxy|Précision absolue en planimètre (en mètres)| numeric | x | 0,152 |
 |preczgn|Précision absolue en altimétrie (en mètres)| numeric | x | 0,523 |
