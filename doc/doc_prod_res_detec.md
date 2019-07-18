@@ -2,7 +2,9 @@
 
 # Documentation des livrables produits pour les opérations de détection des réseaux
 
-## tables
+## Point levé
+
+Désigne les points de géodetection/géoréférencement du réseau
 
 |attribut | Définition | Type informatique | obli | Code | Valeur | 
 |:---|:---|:---|:---|:---|:---|    
