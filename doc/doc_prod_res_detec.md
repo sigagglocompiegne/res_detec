@@ -33,6 +33,17 @@ Désigne les points de géodetection/géoréférencement du réseau
 
 ## Liste de code
 
+### Nature de réseau
+
+|Attribut | Définition | Code couleur |
+|:---|:---|:---|
+|00| Non défini | #FFFFFF |
+|ELEC| Electricité | #FF0000 |
+|ELECECL| Eclairage public | #FF0000 |
+|ELECSLT| Signalisation lumineuse tricolore | #FF0000 |
+
+
+
 ### Classe de précision
 
 |Attribut | Définition | Type informatique |
