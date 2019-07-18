@@ -31,6 +31,12 @@ Désigne les points de géodetection/géoréférencement du réseau
 |horodatage|Horodatage détection/géoréfécement du point| qsdqsdsq | x | dsqdqs |
 |geom|Géométrie 3D de l'objet| Point 3D | x |  |
 
+## Liste de code
 
+### Classe de précision
 
-
+|Attribut | Définition | Type informatique |
+|:---|:---|:---|
+|A| x | x |
+|B| x | x |
+|C| x | x |
