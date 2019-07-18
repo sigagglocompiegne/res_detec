@@ -10,6 +10,7 @@
 |geo_detec_point|Point de détection/géoréférencement d'un réseau|
 |geo_detec_troncon|Troncon de détection/géoréférencement d'un réseau|
 |geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|
+|geo_detec_perinoncouvert|zone non couverte de détection/géoréférencement d'un réseau|
 
 
 
