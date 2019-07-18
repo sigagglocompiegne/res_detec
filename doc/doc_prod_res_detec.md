@@ -4,13 +4,13 @@
 
 ## Fichiers
 
-|Nom du fichier | Désignation |
-|:---|:---|
-|geo_detec_operation|Opération de détection de réseaux|
-|geo_detec_point|Point de détection/géoréférencement d'un réseau|
-|geo_detec_troncon|Troncon de détection/géoréférencement d'un réseau|
-|geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|
-|geo_detec_perinoncouvert|zone non couverte de détection/géoréférencement d'un réseau|
+|Nom du fichier | Désignation | Géométrie |
+|:---|:---|:---|
+|geo_detec_operation|Opération de détection de réseaux|Surface 2D|
+|geo_detec_point|Point de détection/géoréférencement d'un réseau|Point 2D|
+|geo_detec_troncon|Troncon de détection/géoréférencement d'un réseau|Ligne 2D|
+|geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|Point 2D|
+|geo_detec_perinoncouvert|zone non couverte de détection/géoréférencement d'un réseau|Surface 2D|
 
 
 
