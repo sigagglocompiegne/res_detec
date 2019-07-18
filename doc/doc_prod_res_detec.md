@@ -4,10 +4,13 @@
 
 ## Fichiers
 
-|Nom | Désignation |x|
+|Nom du fichier | Désignation |
 |:---|:---|:---|
-|geo_detec_operation|Opération de détection de réseaux|x|
-|geo_detec_point|Point de détection/géoréférencement d'un réseau|x|
+|geo_detec_operation|Opération de détection de réseaux|
+|geo_detec_point|Point de détection/géoréférencement d'un réseau|
+|geo_detec_troncon|Troncon de détection/géoréférencement d'un réseau|
+|geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|
+
 
 
 
