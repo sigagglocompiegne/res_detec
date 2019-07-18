@@ -8,7 +8,7 @@
 
 ## Structure des données
 
-### point levé
+### Point levé
 
 Désigne les points de géodetection/géoréférencement du réseau
 
@@ -20,5 +20,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |natres|Nature du réseau détecté|Liste Nature du réseau| x | ELECECL |
 |x|Coordonnée X Lambert 93 (en mètres)| numeric | x | 687186,623 |
 |y|Coordonnée Y Lambert 93 (en mètres)| numeric | x | 6924318,527 |
+|z_gn|Altimétrie Z NGF de la génératrice (supérieure si enterrée, inférieure si aérienne) du réseau (en mètres)| numeric | x | 35,421 |
+|z_tn|Altimétrie Z NGF du terrain naturel (en mètres)| numeric |  | 36,745 |
 
 
