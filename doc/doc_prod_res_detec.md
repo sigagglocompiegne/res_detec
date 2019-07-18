@@ -28,8 +28,8 @@ Désigne les points de géodetection/géoréférencement du réseau
 |clprecxy|Classe de précision planimétrique (XY)| Liste | x | A |
 |clprecz|Classe de précision altimétrique (Z)| Liste | x | B |
 |clprec|Classe de précision planimétrique (XY) et altimétrique (Z)| Liste | x | B |
-|horodatage|Horodatage détection/géoréfécement du point| date | x | dsqdqs |
-
+|horodatage|Horodatage détection/géoréfécement du point| qsdqsdsq | x | dsqdqs |
+|geom|Géométrie 3D de l'objet| Point 3D | x |  |
 
 
 
