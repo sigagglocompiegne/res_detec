@@ -7,8 +7,8 @@
 Désigne les points de géodetection/géoréférencement du réseau
 
 |attribut | Définition | Type informatique | exemple | 
-|:---|:---|:---|   
+|:---|:---|:---|:---|    
 |idptope|Référence du point levé dans l'opération|Texte(254)| ELECECL2.3 |
-|validede|!|!|
+|validede|!|!|!|
 
 
