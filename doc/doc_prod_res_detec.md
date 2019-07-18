@@ -4,7 +4,15 @@
 
 ## Fichiers
 
+### 
 
+
+
+### Topologie
+
+pt levé d'une opération et dans le périmètre de l'opération
+pt levé est positionné sur un ouvrage de réseau
+troncon de réseau 
 
 ## Structure des données
 
@@ -37,7 +45,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 
 ### Nature de réseau
 
-|Attribut | Définition | Code couleur |
+|Code|Valeur|Code couleur|
 |:---|:---|:---|
 |00| Non défini | #FFFFFF |
 |ELEC| Electricité | #FF0000 |
@@ -48,8 +56,8 @@ Désigne les points de géodetection/géoréférencement du réseau
 
 ### Classe de précision
 
-|Attribut | Définition | Type informatique |
+|Code|Valeur|Définition|
 |:---|:---|:---|
-|A| x | x |
-|B| x | x |
-|C| x | x |
+|A| Classe A | Classe de précision inférieure 40 cm |
+|B| Classe B | Classe de précision supérieure à 40 cm et inférieure à 1,50 m |
+|C| Classe C | Classe de précision supérieure à 1,50 m ou inconnue |
