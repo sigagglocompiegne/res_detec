@@ -12,7 +12,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |refope|Référence de l'opération de détection|Texte(254)| x | refdecommande |
 |insee|Code INSEE de la commmune|Texte(5)| x | 60159 |
 |natres|Nature du réseau détecté|Liste Nature du réseau| x | ELECECL |
-|x|Coordonnée X Lambert 93 (en mètres)| x | 687186,623 |
-|y|Coordonnée Y Lambert 93 (en mètres)| x | 6924318,527 |
+|x|Coordonnée X Lambert 93 (en mètres)| numeric | x | 687186,623 |
+|y|Coordonnée Y Lambert 93 (en mètres)| numeric | x | 6924318,527 |
 
 
