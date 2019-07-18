@@ -4,6 +4,13 @@
 
 ## Fichiers
 
+|Nom | Désignation |x|
+|:---|:---|:---|
+|geo_detec_operation|Opération de détection de réseaux|x|
+|geo_detec_point|Point de détection/géoréférencement d'un réseau|x|
+
+
+
 ### 
 
 
