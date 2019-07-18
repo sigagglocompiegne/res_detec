@@ -1,6 +1,6 @@
 ![picto](/doc/img/Logo_web-GeoCompiegnois.png)
 
-# Documentation des livrables produits pour les opérations de détection des réseaux
+# Documentation des livrables des opérations de détection des réseaux
 
 ## Fichiers
 
