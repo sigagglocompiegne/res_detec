@@ -16,6 +16,21 @@ troncon de réseau
 
 ## Structure des données
 
+### Opération de détection de réseaux
+
+Désigne une périmètre d'opération de géodetection/géoréférencement de réseau
+
+|Attribut | Définition | Type informatique | dqsd | Exemple | 
+|:---|:---|:---|:---|:---|    
+|refope|Référence de l'opération de détection|Texte(254)| x |  |
+|typeope|Type d'opération de détection|Texte(2) = Liste "Type d'opération de détection | x | IC |
+|natres|Nature du réseau faisant l'objet de l'opération de détection|Texte(7) = Liste "Nature du réseau"| x | MULT |
+|mouvrage|Maitre d'ouvrage de l'opération de détection|Texte(80)| x | Commune de ... |
+|presta|Prestataire de l'opération de détection|Texte(80)| x | Cabinet ... |
+|dateope|Date de l'opération de détection|Date| x | 2019-07-18 |
+|nomplan|Nom du fichier du plan|Texte(80)| x | plan_1.dwg |
+|geom|Géométrie de l'objet| Surface 2D | x |  |
+
 ### Point levé
 
 Désigne les points de géodetection/géoréférencement du réseau
@@ -24,7 +39,6 @@ Désigne les points de géodetection/géoréférencement du réseau
 |:---|:---|:---|:---|:---|    
 |refope|Référence de l'opération de détection|Texte(254)| x |  |
 |refptope|Référence du point levé dans l'opération de détection|Texte(30)| x | pt2.3 |
-|insee|Code INSEE de la commmune|Texte(5)| x | 60159 |
 |typedetec|Type de géodétection/géoréférencement|Texte(2) = Liste "Type de détection | x | OUV |
 |methode|Méthode employée pour la détection|Texte(254)| x | Acoustique |
 |natres|Nature du réseau détecté|Texte(7) = Liste "Nature du réseau"| x | ELECECL |
