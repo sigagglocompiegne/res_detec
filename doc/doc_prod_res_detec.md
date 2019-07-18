@@ -20,6 +20,7 @@
 * un ouvrage de réseaux (troncon ou noeud) est contenu dans le périmètre de l'opération
 * un point levé est positionné sur un point de construction géométrique d'un ouvrage de réseau (troncon ou noeud)
 * un point levé peut constituer un point sécant de la géométrie d'un troncon de réseau
+* un noeud de réseau est lié à un tronçon de réseau
 
 ## Structure des données
 
