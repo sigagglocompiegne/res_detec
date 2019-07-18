@@ -25,6 +25,9 @@ Désigne les points de géodetection/géoréférencement du réseau
 |c|Charge sur réseau (en mètres)| numeric |  | 1,324 |
 |prec_xy|Précision absolue en planimètre (en mètres)| numeric | x | 0,152 |
 |prec_z_gn|Précision absolue en altimétrie (en mètres)| numeric | x | 0,223 |
+|clprecxy|Classe de précision planimétrique (XY)| Liste | x | A |
+|clprecz|Classe de précision altimétrique (Z)| Liste | x | B |
+|clprec|Classe de précision planimétrique (XY) et altimétrique (Z)| Liste | x | B |
 |horodatage|Horodatage détection/géoréfécement du point| date | x | dsqdqs |
 
 
