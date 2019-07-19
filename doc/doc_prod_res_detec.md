@@ -13,6 +13,8 @@
 |geo_detec_troncon|Tronçon (cable, canalisation) de détection/géoréférencement d'un réseau|Ligne 2D|
 |geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|Point 2D|
 |geo_detec_zonenoncouverte|zone non couverte de détection/géoréférencement d'un réseau|Surface 2D|
+|geo_detec_annotation|Annotation|Point 2D|
+
 
 ### Topologie
 
@@ -88,9 +90,6 @@ Désigne les points de géodetection/géoréférencement du réseau
 |INCE|Incendie|#00B0F0|
 |PINS|Protection Inondation-Submersion|#663300|
 |MULT|Multi réseaux|#FF00FF|
-
-
-
 
 ### Classe de précision
 
