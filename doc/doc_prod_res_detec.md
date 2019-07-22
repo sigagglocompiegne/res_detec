@@ -99,7 +99,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |B| Classe B | Classe de précision supérieure à 40 cm et inférieure à 1,50 m |
 |C| Classe C | Classe de précision supérieure à 1,50 m ou inconnue |
 
-### Classe de précision
+### Type d'opération de détection
 
 |Code|Valeur|Définition|
 |:---|:---|:---|
