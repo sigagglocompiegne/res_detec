@@ -9,11 +9,6 @@
 
 /* TO DO
 
-
-REVOIR LE TRIGGER POUR AMELIORER LE RECLASSEMENT EN CLPREC (prb avec les valeurs NULL mal interprétées)
-
-
-- zones d'exclusion (inacessible)
 - habillage (txt, cote, hachure ...)
 - enveloppes (lien avec objet du réseau, vue, trigger ...) faut il considérer ceci simplement comme une géométrie complémentaire de noeud ?
 - chk relation spatiale, verif point, noeud, troncon dans peri une opération
