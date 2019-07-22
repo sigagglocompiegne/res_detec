@@ -12,7 +12,7 @@
 |geo_detec_point|Point de détection/géoréférencement d'un réseau|Point 2D|
 |geo_detec_troncon|Tronçon (cable, canalisation) de détection/géoréférencement d'un réseau|Ligne 2D|
 |geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|Point 2D|
-|geo_detec_zonenoncouverte|zone non couverte de détection/géoréférencement d'un réseau|Surface 2D|
+|geo_detec_exclusion|Secteur d'exclusion de détection de réseau|Surface 2D|
 |geo_detec_annotation|Annotation|Point 2D|
 
 
@@ -20,7 +20,7 @@
 
 * un point levé est contenu dans le périmètre de l'opération
 * un ouvrage de réseaux (troncon ou noeud) est contenu dans le périmètre de l'opération
-* une zone non couverte est contenue dans le périmètre de l'opération
+* un secteur d'exclusion est contenu dans le périmètre d'une opération
 * un point levé est positionné sur un point de construction géométrique d'un ouvrage de réseau (troncon ou noeud)
 * un point levé peut constituer un point sécant de la géométrie d'un troncon de réseau
 * un noeud de réseau est lié à un tronçon de réseau
