@@ -15,7 +15,7 @@ REVOIR LE TRIGGER POUR AMELIORER LE RECLASSEMENT EN CLPREC (prb avec les valeurs
 
 - zones d'exclusion (inacessible)
 - habillage (txt, cote, hachure ...)
-- enveloppes (lien avec objet du réseau, vue, trigger ...)
+- enveloppes (lien avec objet du réseau, vue, trigger ...) faut il considérer ceci simplement comme une géométrie complémentaire de noeud ?
 - chk relation spatiale, verif point, noeud, troncon dans peri une opération
 - chk relation spatiale, verif point, noeud, troncon dans peri de l'opération référencée
 - chk neoud/troncon de natres = natres du ptleve
@@ -72,6 +72,7 @@ ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXIS
 -- classe
 
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_operation;
+DROP TABLE IF EXISTS m_reseau_detection.geo_detec_exclusion;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_point;
 DROP TABLE IF EXISTS m_reseau_detection.an_detec_reseau;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_troncon;
@@ -91,6 +92,7 @@ DROP TABLE IF EXISTS m_reseau_detection.lt_typeope;
 -- sequence
 
 DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_operation_id_seq;
+DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_exclusion_id_seq;
 DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_point_id_seq;
 DROP SEQUENCE IF EXISTS m_reseau_detection.an_detec_reseau_id_seq;
 
@@ -313,6 +315,17 @@ CREATE SEQUENCE m_reseau_detection.geo_detec_operation_id_seq
   START 1
   CACHE 1;
 
+-- Sequence: m_reseau_detection.geo_detec_exclusion_id_seq
+
+-- DROP SEQUENCE m_reseau_detection.geo_detec_exclusion_id_seq;
+
+CREATE SEQUENCE m_reseau_detection.geo_detec_exclusion_id_seq
+  INCREMENT 1
+  MINVALUE 0
+  MAXVALUE 9223372036854775807
+  START 1
+  CACHE 1;
+
 -- Sequence: m_reseau_detection.geo_detec_point_id_seq
 
 -- DROP SEQUENCE m_reseau_detection.geo_detec_point_id_seq;
@@ -347,8 +360,6 @@ CREATE SEQUENCE m_reseau_detection.an_detec_reseau_id_seq
 
 -- #################################################################### CLASSE OPERATION DE DETECTION ###############################################
 
-
-
 -- Table: m_reseau_detection.geo_detec_operation
 
 -- DROP TABLE m_reseau_detection.geo_detec_operation;
@@ -364,6 +375,8 @@ CREATE TABLE m_reseau_detection.geo_detec_operation
   dateope date NOT NULL,
   nomplan character varying(80),
   urlplan character varying(254),
+  observ character varying(254),
+  sup_m2 integer,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
   geom geometry(MultiPolygon,2154) NOT NULL,
@@ -385,12 +398,49 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.presta IS 'Prestataire 
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.dateope IS 'Date de l''opération de détection';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.nomplan IS 'Nom du fichier du plan';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.urlplan IS 'Lien vers le fichier du plan';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.observ IS 'Commentaires divers';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.sup_m2 IS 'Superficie de l''opération de détection (en mètres carrés)';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.date_sai IS 'Horodatage de l''intégration en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_operation.geom IS 'Géométrie de l''objet';
 
-
 ALTER TABLE m_reseau_detection.geo_detec_operation ALTER COLUMN idopedetec SET DEFAULT nextval('m_reseau_detection.geo_detec_operation_id_seq'::regclass);
+
+
+-- #################################################################### CLASSE ZONE D'EXCLUSION ###############################################
+
+-- Table: m_reseau_detection.geo_detec_exclusion
+
+-- DROP TABLE m_reseau_detection.geo_detec_exclusion;
+
+CREATE TABLE m_reseau_detection.geo_detec_exclusion
+(
+  idexcdetec character varying(254) NOT NULL,
+  refope character varying(254) NOT NULL, -- fkey vers classe opedetec
+  observ character varying(254),
+  sup_m2 integer,
+  date_sai timestamp without time zone NOT NULL DEFAULT now(),  
+  date_maj timestamp without time zone,
+  geom geometry(MultiPolygon,2154) NOT NULL,
+  CONSTRAINT geo_detec_exclusion_pkey PRIMARY KEY (idexcdetec)
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.geo_detec_exclusion
+  IS 'Secteur d''exclusion de détection de réseaux';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.idexcdetec IS 'Identifiant unique du secteur d''exclusion de détection dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.observ IS 'Commentaires divers';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.sup_m2 IS 'Superficie du secteur d''exclusion de détection (en mètres carrés)';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.date_sai IS 'Horodatage de l''intégration en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_exclusion.geom IS 'Géométrie de l''objet';
+
+ALTER TABLE m_reseau_detection.geo_detec_exclusion ALTER COLUMN idexcdetec SET DEFAULT nextval('m_reseau_detection.geo_detec_exclusion_id_seq'::regclass);
+
+
 
 
 -- #################################################################### CLASSE POINT DE DETECTION/GEOREF ###############################################
@@ -595,6 +645,8 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.date_maj IS 'Horodatage
 COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.geom IS 'Géométrie de l''objet';
 
 ALTER TABLE m_reseau_detection.geo_detec_enveloppe ALTER COLUMN idenvdetec SET DEFAULT nextval('m_reseau_detection.an_detec_reseau_id_seq'::regclass);
+
+
 
  
   
@@ -892,7 +944,7 @@ CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
-CASE WHEN ((NEW.clprecxy IN (NULL,'C')) OR (NEW.clprecz IN (NULL,'C'))) THEN 'C' WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' ELSE 'B' END,
+CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'B' WHEN (NEW.clprecxy = 'B' AND NEW.clprecz IN ('A','B')) THEN 'B' ELSE 'C' END,
 now(),
 NULL;
 
@@ -920,8 +972,7 @@ natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 statut=CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 clprecxy=CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 clprecz=CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
---clprec=CASE WHEN ((NEW.clprecxy IN (NULL,'C')) OR (NEW.clprecz IN (NULL,'C'))) THEN 'C' WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' ELSE 'B' END,
-clprec=CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'C' WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' ELSE 'C' END,
+clprec=CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'B' WHEN (NEW.clprecxy = 'B' AND NEW.clprecz IN ('A','B')) THEN 'B' ELSE 'C' END,
 date_sai=OLD.date_sai,
 date_maj=now()
 WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
@@ -1004,7 +1055,7 @@ CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
-CASE WHEN NEW.clprec IS NULL THEN 'C' ELSE NEW.clprec END,
+CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'B' WHEN (NEW.clprecxy = 'B' AND NEW.clprecz IN ('A','B')) THEN 'B' ELSE 'C' END,
 now(),
 NULL;
 
@@ -1032,7 +1083,7 @@ natres=CASE WHEN NEW.natres IS NULL THEN '00' ELSE NEW.natres END,
 statut=CASE WHEN NEW.statut IS NULL THEN '00' ELSE NEW.statut END,
 clprecxy=CASE WHEN NEW.clprecxy IS NULL THEN 'C' ELSE NEW.clprecxy END,
 clprecz=CASE WHEN NEW.clprecz IS NULL THEN 'C' ELSE NEW.clprecz END,
-clprec=CASE WHEN NEW.clprec IS NULL THEN 'C' ELSE NEW.clprec END,
+clprec=CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'B' WHEN (NEW.clprecxy = 'B' AND NEW.clprecz IN ('A','B')) THEN 'B' ELSE 'C' END,
 date_sai=OLD.date_sai,
 date_maj=now()
 WHERE m_reseau_detection.an_detec_reseau.idresdetec = OLD.idresdetec;
