@@ -98,3 +98,12 @@ Désigne les points de géodetection/géoréférencement du réseau
 |A| Classe A | Classe de précision inférieure 40 cm |
 |B| Classe B | Classe de précision supérieure à 40 cm et inférieure à 1,50 m |
 |C| Classe C | Classe de précision supérieure à 1,50 m ou inconnue |
+
+### Classe de précision
+
+|Code|Valeur|Définition|
+|:---|:---|:---|
+|00| Non renseigné | Non renseigné |
+|IC| Investigation complémentaire | Opération menée dans le cadre de travaux par le maitre d'ouvrage |
+|OL| Opération de localisation | Opération menée dans le cadre de démarches d'amélioration continue par l'exploitant du réseau |
+|99| Autre | Autre |
