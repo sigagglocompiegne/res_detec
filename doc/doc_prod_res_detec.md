@@ -12,6 +12,7 @@
 |geo_detec_point|Point de détection/géoréférencement d'un réseau|Point 2D|
 |geo_detec_troncon|Tronçon (cable, canalisation) de détection/géoréférencement d'un réseau|Ligne 2D|
 |geo_detec_noeud|Noeud de détection/géoréférencement d'un réseau|Point 2D|
+|geo_detec_enveloppe|Enveloppe d'un affleurant de réseau|Surface 2D|
 |geo_detec_exclusion|Secteur d'exclusion de détection de réseau|Surface 2D|
 |geo_detec_annotation|Annotation|Point 2D|
 
