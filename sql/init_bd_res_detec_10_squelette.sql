@@ -9,10 +9,10 @@
 
 /* TO DO
 
+- chk update geom opération inclut toujours les classes liées. test ok sur une 1 classe mais code à reprendre pour gérer des références multiples
+
 - habillage (txt, cote, hachure ...)
 - enveloppes (lien avec objet du réseau, vue, trigger ...) faut il considérer ceci simplement comme une géométrie complémentaire de noeud ?
-- chk relation spatiale, verif point, noeud, troncon dans peri une opération
-- chk relation spatiale, verif point, noeud, troncon dans peri de l'opération référencée
 - chk neoud/troncon de natres = natres du ptleve
 - voir si on considère qu'on peut avoir n plans autocad pour 1 opération, si oui, prévoir table media séparée
 - statut : voir si on conserve l'info en considérant que cette info n'est pas possible en retour d'IC ou OL, mais bien uniquement en retour de DT ou DICT par l'exploitant
@@ -33,11 +33,19 @@
 
 DROP TRIGGER IF EXISTS t_t1_geo_v_detec_noeud_res ON m_reseau_detection.geo_v_detec_noeud_res;
 DROP TRIGGER IF EXISTS t_t1_geo_v_detec_troncon_res ON m_reseau_detection.geo_v_detec_troncon_res;
+DROP TRIGGER IF EXISTS t_t1_geo_detec_point ON m_reseau_detection.geo_detec_point;
+DROP TRIGGER IF EXISTS t_t1_geo_detec_point ON m_reseau_detection.geo_detec_exclusion;
+DROP TRIGGER IF EXISTS t_t1_geo_detec_point ON m_reseau_detection.geo_detec_operation;
+
 
 -- fonction trigger
 
 DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_v_detec_noeud_res();
 DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_v_detec_troncon_res();
+DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_detec_point();
+DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_detec_exclusion();
+DROP FUNCTION IF EXISTS m_reseau_detection.ft_m_geo_detec_operation();
+
 
 -- vue
 
@@ -62,6 +70,7 @@ ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_operation DROP CONSTRAINT IF 
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_statut_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS refope_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS refope_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_exclusion DROP CONSTRAINT IF EXISTS refope_fkey;
 
 
 -- classe
@@ -471,7 +480,7 @@ CREATE TABLE m_reseau_detection.geo_detec_point
   horodatage timestamp without time zone NOT NULL,
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone,
-  geom geometry(PointZ,2154) NOT NULL,
+  geom geometry(Point,2154) NOT NULL,
   CONSTRAINT geo_detec_point_pkey PRIMARY KEY (idptdetec) 
 )
 WITH (
@@ -790,6 +799,15 @@ ALTER TABLE m_reseau_detection.geo_detec_troncon
 
 -- Foreign Key: m_reseau_detection.refope_fkey
 
+-- ALTER TABLE m_reseau_detection.geo_detec_exclusion DROP CONSTRAINT refope_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_exclusion               
+  ADD CONSTRAINT refope_fkey FOREIGN KEY (refope)
+      REFERENCES m_reseau_detection.geo_detec_operation (refope) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- Foreign Key: m_reseau_detection.refope_fkey
+
 -- ALTER TABLE m_reseau_detection.an_detec_reseau DROP CONSTRAINT refope_fkey;   
 
 ALTER TABLE m_reseau_detection.an_detec_reseau               
@@ -920,7 +938,7 @@ CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_v_detec_troncon_res()
   RETURNS trigger AS
 $BODY$
 
---déclaration variable pour stocker la séquence des id raepa
+--déclaration variable pour stocker la séquence des id
 DECLARE v_idresdetec character varying(254);
 
 BEGIN
@@ -948,7 +966,7 @@ INSERT INTO m_reseau_detection.geo_detec_troncon (idresdetec, idtrope, diametre,
 SELECT v_idresdetec,
 NEW.idtrope,
 NEW.diametre,
-CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END;
+CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END;
 
 RETURN NEW;
 
@@ -979,7 +997,7 @@ SET
 idresdetec=OLD.idresdetec,
 idtrope=NEW.idtrope,
 diametre=NEW.diametre,
-geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END
+geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END
 WHERE m_reseau_detection.geo_detec_troncon.idresdetec = OLD.idresdetec;
 
 RETURN NEW;
@@ -1031,7 +1049,7 @@ CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_v_detec_noeud_res()
   RETURNS trigger AS
 $BODY$
 
---déclaration variable pour stocker la séquence des id raepa
+--déclaration variable pour stocker la séquence des id
 DECLARE v_idresdetec character varying(254);
 
 BEGIN
@@ -1059,7 +1077,7 @@ INSERT INTO m_reseau_detection.geo_detec_noeud (idresdetec, idndope, typenoeud, 
 SELECT v_idresdetec,
 NEW.idndope,
 NEW.typenoeud,
-CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END;
+CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END;
 
 RETURN NEW;
 
@@ -1090,7 +1108,7 @@ SET
 idresdetec=OLD.idresdetec,
 idndope=NEW.idndope,
 typenoeud=NEW.typenoeud,
-geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE st_contains(geom,NEW.geom)) IS NULL THEN NULL ELSE NEW.geom END
+geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END
 WHERE m_reseau_detection.geo_detec_noeud.idresdetec = OLD.idresdetec;
 
 RETURN NEW;
@@ -1128,4 +1146,190 @@ CREATE TRIGGER t_t1_geo_v_detec_noeud_res
   INSTEAD OF INSERT OR UPDATE OR DELETE
   ON m_reseau_detection.geo_v_detec_noeud_res
   FOR EACH ROW
-  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_v_detec_noeud_res();                 
+  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_v_detec_noeud_res();
+  
+
+  
+-- #################################################################### FONCTION TRIGGER - GEO_DETEC_POINT ###################################################
+
+-- Function: m_reseau_detection.ft_m_geo_detec_point()
+
+-- DROP FUNCTION m_reseau_detection.ft_m_geo_detec_point();
+
+CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_detec_point()
+  RETURNS trigger AS
+$BODY$
+
+--déclaration variable pour stocker la séquence des id
+DECLARE v_idptdetec character varying(254);
+
+BEGIN
+
+-- INSERT
+IF (TG_OP = 'INSERT') THEN
+
+NEW.insee=(SELECT insee FROM r_osm.geo_vm_osm_commune_arc WHERE st_intersects(NEW.geom,geom));
+NEW.x=st_x(NEW.geom);
+NEW.y=st_y(NEW.geom);
+NEW.clprecxy=CASE WHEN NEW.precxy <= 0.4 THEN 'A' WHEN NEW.precxy > 0.4 AND NEW.precxy < 1.5 THEN 'B' ELSE 'C' END;
+NEW.clprecz=CASE WHEN NEW.preczgn <= 0.4 THEN 'A' WHEN NEW.preczgn > 0.4 AND NEW.preczgn < 1.5 THEN 'B' ELSE 'C' END;
+NEW.clprec=CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'B' WHEN (NEW.clprecxy = 'B' AND NEW.clprecz IN ('A','B')) THEN 'B' ELSE 'C' END;
+NEW.date_sai=now();
+NEW.date_maj=NULL;
+NEW.geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END;
+
+RETURN NEW;
+
+
+-- UPDATE
+ELSIF (TG_OP = 'UPDATE') THEN
+
+NEW.idptdetec=OLD.idptdetec;
+NEW.insee=(SELECT insee FROM r_osm.geo_vm_osm_commune_arc WHERE st_intersects(NEW.geom,geom));
+NEW.x=st_x(NEW.geom);
+NEW.y=st_y(NEW.geom);
+NEW.clprecxy=CASE WHEN NEW.precxy <= 0.4 THEN 'A' WHEN NEW.precxy > 0.4 AND NEW.precxy < 1.5 THEN 'B' ELSE 'C' END;
+NEW.clprecz=CASE WHEN NEW.preczgn <= 0.4 THEN 'A' WHEN NEW.preczgn > 0.4 AND NEW.preczgn < 1.5 THEN 'B' ELSE 'C' END;
+NEW.clprec=CASE WHEN (NEW.clprecxy = 'A' AND NEW.clprecz = 'A') THEN 'A' WHEN ((NEW.clprecxy IN ('A','B')) AND (NEW.clprecz = 'B')) THEN 'B' WHEN (NEW.clprecxy = 'B' AND NEW.clprecz IN ('A','B')) THEN 'B' ELSE 'C' END;
+NEW.horodatage=OLD.horodatage;
+NEW.date_sai=OLD.date_sai;
+NEW.date_maj=now();
+NEW.geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END;
+
+RETURN NEW;
+          
+END IF;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_detec_point() IS 'Fonction trigger pour mise à jour des entités depuis la classe des points de réseau détectés';
+
+
+-- Trigger: t_t1_geo_detec_point on m_reseau_detection.geo_detec_point
+
+-- DROP TRIGGER t_t1_geo_detec_point ON m_reseau_detection.geo_detec_point;
+
+CREATE TRIGGER t_t1_geo_detec_point
+  BEFORE INSERT OR UPDATE
+  ON m_reseau_detection.geo_detec_point
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_detec_point();
+  
+  
+
+-- #################################################################### FONCTION TRIGGER - GEO_DETEC_EXCLUSION ###################################################
+
+- Function: m_reseau_detection.ft_m_geo_detec_exclusion()
+
+-- DROP FUNCTION m_reseau_detection.ft_m_geo_detec_exclusion();
+
+CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_detec_exclusion()
+  RETURNS trigger AS
+$BODY$
+
+--déclaration variable pour stocker la séquence des id
+DECLARE v_idexcdetec character varying(254);
+
+BEGIN
+
+-- INSERT
+IF (TG_OP = 'INSERT') THEN
+
+NEW.sup_m2=round(st_area(NEW.geom));
+NEW.date_sai=now();
+NEW.date_maj=NULL;
+NEW.geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END;
+
+RETURN NEW;
+
+
+-- UPDATE
+ELSIF (TG_OP = 'UPDATE') THEN
+
+NEW.idexcdetec=OLD.idexcdetec;
+NEW.sup_m2=round(st_area(NEW.geom));
+NEW.date_sai=OLD.date_sai;
+NEW.date_maj=now();
+NEW.geom=CASE WHEN (SELECT geom FROM m_reseau_detection.geo_detec_operation WHERE (st_contains(st_buffer(geom,0.1),NEW.geom)) AND NEW.refope = refope) IS NOT NULL THEN NEW.geom ELSE NULL END;
+
+RETURN NEW;
+          
+END IF;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_detec_exclusion() IS 'Fonction trigger pour mise à jour des entités depuis la classe des secteurs d''exclusion de détection des réseaux';
+
+-- Trigger: t_t1_geo_detec_exclusion on m_reseau_detection.geo_detec_exclusion
+
+-- DROP TRIGGER t_t1_geo_detec_exclusion ON m_reseau_detection.geo_detec_exclusion;
+
+CREATE TRIGGER t_t1_geo_detec_exclusion
+  BEFORE INSERT OR UPDATE
+  ON m_reseau_detection.geo_detec_exclusion
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_detec_exclusion();
+  
+
+  
+-- #################################################################### FONCTION TRIGGER - GEO_DETEC_OPERATION ###################################################
+
+-- Function: m_reseau_detection.ft_m_geo_detec_operation()
+
+-- DROP FUNCTION m_reseau_detection.ft_m_geo_detec_operation();
+
+CREATE OR REPLACE FUNCTION m_reseau_detection.ft_m_geo_detec_operation()
+  RETURNS trigger AS
+$BODY$
+
+--déclaration variable pour stocker la séquence des id
+DECLARE v_idopedetec character varying(254);
+
+BEGIN
+
+-- INSERT
+IF (TG_OP = 'INSERT') THEN
+
+NEW.sup_m2=round(st_area(NEW.geom));
+NEW.date_sai=now();
+NEW.date_maj=NULL;
+
+RETURN NEW;
+
+
+-- UPDATE
+ELSIF (TG_OP = 'UPDATE') THEN
+
+NEW.idopedetec=OLD.idopedetec;
+NEW.sup_m2=round(st_area(NEW.geom));
+NEW.date_sai=OLD.date_sai;
+NEW.date_maj=now();
+-- revoir code. fonctionne pour référence à 1 seule et unique classe tierce, mais pas si on en référence plusieurs (exclusion, pt levé, noeud, troncon ...)
+--NEW.geom=CASE WHEN (SELECT ST_Union(geom) FROM m_reseau_detection.geo_detec_exclusion e, m_reseau_detection.geo_v_detec_troncon_res t WHERE ((st_contains(st_buffer(NEW.geom,0.1),e.geom) AND NEW.refope = e.refope) IS NOT NULL AND (st_contains(st_buffer(NEW.geom,0.1),t.geom) AND NEW.refope = t.refope) IS NOT NULL)) THEN NEW.geom ELSE NULL END;
+
+RETURN NEW;
+          
+END IF;
+
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+COMMENT ON FUNCTION m_reseau_detection.ft_m_geo_detec_operation() IS 'Fonction trigger pour mise à jour des entités depuis la classe des opérations de détection des réseaux';
+
+-- Trigger: t_t1_geo_detec_operation on m_reseau_detection.geo_detec_operation
+
+-- DROP TRIGGER t_t1_geo_detec_operation ON m_reseau_detection.geo_detec_operation;
+
+CREATE TRIGGER t_t1_geo_detec_operation
+  BEFORE INSERT OR UPDATE
+  ON m_reseau_detection.geo_detec_operation
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_reseau_detection.ft_m_geo_detec_operation();      
