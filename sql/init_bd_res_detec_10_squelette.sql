@@ -67,12 +67,15 @@ ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_operation DROP CONSTRAINT IF 
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_natres_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_operation DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe_s DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe_l DROP CONSTRAINT IF EXISTS lt_natres_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_noeud DROP CONSTRAINT IF EXISTS lt_typeaffleu_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS lt_statut_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_point DROP CONSTRAINT IF EXISTS refope_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.an_detec_reseau DROP CONSTRAINT IF EXISTS refope_fkey;
 ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_exclusion DROP CONSTRAINT IF EXISTS refope_fkey;
-ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe DROP CONSTRAINT IF EXISTS refope_fkey;
-ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe DROP CONSTRAINT IF EXISTS idobjope_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe_s DROP CONSTRAINT IF EXISTS refope_fkey;
+ALTER TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe_s DROP CONSTRAINT IF EXISTS idobjope_fkey;
 
 
 -- classe
@@ -83,7 +86,8 @@ DROP TABLE IF EXISTS m_reseau_detection.geo_detec_point;
 DROP TABLE IF EXISTS m_reseau_detection.an_detec_reseau;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_troncon;
 DROP TABLE IF EXISTS m_reseau_detection.geo_detec_noeud;
-DROP TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe;
+DROP TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe_s;
+DROP TABLE IF EXISTS m_reseau_detection.geo_detec_enveloppe_l;
 
 
 -- domaine de valeur
@@ -93,7 +97,7 @@ DROP TABLE IF EXISTS m_reseau_detection.lt_clprec;
 --DROP TABLE IF EXISTS m_reseau_detection.lt_typeleve;
 DROP TABLE IF EXISTS m_reseau_detection.lt_statut;
 DROP TABLE IF EXISTS m_reseau_detection.lt_typeope;
-
+DROP TABLE IF EXISTS m_reseau_detection.lt_typeaffleu;
 
 -- sequence
 
@@ -101,7 +105,8 @@ DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_operation_id_seq;
 DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_exclusion_id_seq;
 DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_point_id_seq;
 DROP SEQUENCE IF EXISTS m_reseau_detection.an_detec_reseau_id_seq;
-DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_enveloppe_id_seq;
+DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_enveloppe_s_id_seq;
+DROP SEQUENCE IF EXISTS m_reseau_detection.geo_detec_enveloppe_l_id_seq;
 
 
 -- schema
@@ -132,7 +137,7 @@ COMMENT ON SCHEMA m_reseau_detection
 -- ####################################################################################################################################################
 
 
--- ### domaine de valeur hérité du standard StaR-DT
+-- ### domaine de valeur hérité du standard StaR-DT, préexistant au PCRS mais avec des variantes
 
 -- Table: m_reseau_detection.lt_natres
 
@@ -162,22 +167,21 @@ INSERT INTO m_reseau_detection.lt_natres(
 ('ELEC','Electricité','#FF0000'),
 ('ELECECL','Eclairage public','#FF0000'),
 ('ELECSLT','Signalisation lumineuse tricolore','#FF0000'),
--- divergence StaR-DT et PCRS
-('ELECTRD','Eléctricité transport/distribution','#FF0000'),
+('ELECTRD','Eléctricité transport/distribution','#FF0000'), -- PCRS décomposé en 2
 -- PCRS : ('ELECBT','Eléctricité basse tension','#FF0000'),
 -- PCRS : ('ELECHT','Eléctricité haute tension','#FF0000'),
 ('GAZ','Gaz','#FFFF00'),
 ('CHIM','Produits chimiques','#F99707'),
 ('AEP','Eau potable','#00B0F0'),
-('ASS','Assainissement et pluvial','#663300'),
+('ASS','Assainissement et pluvial','#663300'), -- PCRS : ('ASSA','Assainissement et pluvial','#663300'),
 ('ASSEP','Eaux pluviales','#663300'),
 ('ASSEU','Eaux usées','#663300'),
-('ASSUN','Réseau unitaire','#663300'),
+('ASSUN','Réseau unitaire','#663300'), -- PCRS : ('ASSRU','Réseau unitaire','#663300'), 
 ('CHAU','Chauffage et climatisation','#7030A0'),
 ('COM','Télécom','#00FF00'),
 ('DECH','Déchets','#663300'),
 ('INCE','Incendie','#00B0F0'),
-('PINS','Protection Inondation-Submersion','#663300'),
+('PINS','Protection Inondation-Submersion','#663300'), -- n'existe pas PCRS
 ('MULT','Multi réseaux','#FF00FF');
 
 
@@ -308,6 +312,44 @@ INSERT INTO m_reseau_detection.lt_typeope(
 ('99','Autre','Autre');
 
 
+-- ### domaine de valeur hérité du standard PCRS v2,
+
+-- Table: m_reseau_detection.lt_typeaffleu
+
+-- DROP TABLE m_reseau_detection.lt_typeaffleu;
+
+CREATE TABLE m_reseau_detection.lt_typeaffleu
+(
+  code character varying(2) NOT NULL,
+  valeur character varying(80) NOT NULL,
+  definition character varying(255),
+  CONSTRAINT lt_typeaffleu_pkey PRIMARY KEY (code)
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.lt_typeaffleu
+  IS 'Type de noeud affleurant de réseau';
+COMMENT ON COLUMN m_reseau_detection.lt_typeaffleu.code IS 'Code de la liste énumérée relative au type de noeud affleurant de réseau';
+COMMENT ON COLUMN m_reseau_detection.lt_typeaffleu.valeur IS 'Valeur de la liste énumérée relative au type de noeud affleurant de réseau';
+COMMENT ON COLUMN m_reseau_detection.lt_typeaffleu.definition IS 'Définition de la liste énumérée relative au type de noeud affleurant de réseau';
+
+INSERT INTO m_reseau_detection.lt_typeaffleu(
+            code, valeur, definition)
+    VALUES
+('00','Non renseigné','Non renseigné'),
+('01','Avaloir',''),
+('02','Boîte, Coffret, Armoire',''),
+('03','Tampon, plaque, chambre',''),
+('04','Branchement, vanne, bouche à clé',''),
+('05','Bouche incendie, Poteau incendie',''),
+('06','Poteau',''),
+('07','Poteau d''éclairage',''),
+('99','Autre','Autre');
+
+
+
 -- ####################################################################################################################################################
 -- ###                                                                                                                                              ###
 -- ###                                                                     SEQUENCE                                                                 ###
@@ -359,17 +401,28 @@ CREATE SEQUENCE m_reseau_detection.an_detec_reseau_id_seq
   START 1
   CACHE 1;
   
--- Sequence: m_reseau_detection.geo_detec_enveloppe_id_seq
+-- Sequence: m_reseau_detection.geo_detec_enveloppe_s_id_seq
 
--- DROP SEQUENCE m_reseau_detection.geo_detec_enveloppe_id_seq;
+-- DROP SEQUENCE m_reseau_detection.geo_detec_enveloppe_s_id_seq;
 
-CREATE SEQUENCE m_reseau_detection.geo_detec_enveloppe_id_seq
+CREATE SEQUENCE m_reseau_detection.geo_detec_enveloppe_s_id_seq
   INCREMENT 1
   MINVALUE 0
   MAXVALUE 9223372036854775807
   START 1
   CACHE 1;    
-  
+
+-- Sequence: m_reseau_detection.geo_detec_enveloppe_l_id_seq
+
+-- DROP SEQUENCE m_reseau_detection.geo_detec_enveloppe_l_id_seq;
+
+CREATE SEQUENCE m_reseau_detection.geo_detec_enveloppe_l_id_seq
+  INCREMENT 1
+  MINVALUE 0
+  MAXVALUE 9223372036854775807
+  START 1
+  CACHE 1; 
+   
 
 -- ####################################################################################################################################################
 -- ###                                                                                                                                              ###
@@ -589,7 +642,7 @@ ALTER TABLE m_reseau_detection.an_detec_reseau ALTER COLUMN idobjdetec SET DEFAU
 CREATE TABLE m_reseau_detection.geo_detec_noeud
 (
   idobjdetec character varying(254) NOT NULL,
-  typenoeud character varying(5) NOT NULL,         -- fkey vers domaine de valeur
+  typeaffleu character varying(2), -- fkey vers lt_typeaffleu
   symbnom character varying(254),
   symbangle numeric(5,2),
   symblong real,
@@ -604,7 +657,7 @@ WITH (
 COMMENT ON TABLE m_reseau_detection.geo_detec_noeud
   IS 'Noeud de réseau (ouvrage/appareillage) détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.idobjdetec IS 'Identifiant unique de l''élément de réseau détecté dans la base de données';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.typenoeud IS 'Type d''ouvrage ou d''appareillage';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.typeaffleu IS 'Type de noeud affleurant de réseau';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.symbnom IS 'Nom du symbole employé pour la représentation du noeud';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.symbangle IS 'Angle de rotation du symbole employé pour la représentation du noeud';
 COMMENT ON COLUMN m_reseau_detection.geo_detec_noeud.symblong IS 'Facteur d''étirement en longueur du symbole';
@@ -623,7 +676,7 @@ CREATE TABLE m_reseau_detection.geo_detec_troncon
   idobjdetec character varying(254) NOT NULL,
   diametre integer,
 -- materiau
-  geom geometry(LineStringZ,2154) NOT NULL,
+  geom geometry(LineString,2154) NOT NULL,
   CONSTRAINT geo_detec_troncon_pkey PRIMARY KEY (idobjdetec) 
 )
 WITH (
@@ -639,11 +692,11 @@ COMMENT ON COLUMN m_reseau_detection.geo_detec_troncon.geom IS 'Géométrie 3D d
 
 -- #################################################################### CLASSE ENVELOPPE ###############################################
 
--- Table: m_reseau_detection.geo_detec_enveloppe
+-- Table: m_reseau_detection.geo_detec_enveloppe_s
 
--- DROP TABLE m_reseau_detection.geo_detec_enveloppe;
+-- DROP TABLE m_reseau_detection.geo_detec_enveloppe_s;
 
-CREATE TABLE m_reseau_detection.geo_detec_enveloppe
+CREATE TABLE m_reseau_detection.geo_detec_enveloppe_s
 (
   idenvdetec character varying(254) NOT NULL,
   refenvope character varying(30),
@@ -651,27 +704,58 @@ CREATE TABLE m_reseau_detection.geo_detec_enveloppe
   idobjope character varying(254) NOT NULL, -- fkey vers 
   refope character varying(80) NOT NULL, -- fkey vers classe opedetec
   refobjope character varying(30) NOT NULL,
+  natres character varying(7) NOT NULL, -- fkey vers domaine de valeur
   date_sai timestamp without time zone NOT NULL DEFAULT now(),  
   date_maj timestamp without time zone, 
   geom geometry(Polygon,2154),
-  CONSTRAINT geo_detec_enveloppe_pkey PRIMARY KEY (idenvdetec) 
+  CONSTRAINT geo_detec_enveloppe_s_pkey PRIMARY KEY (idenvdetec) 
 )
 WITH (
   OIDS=FALSE
 );
 
-COMMENT ON TABLE m_reseau_detection.geo_detec_enveloppe
+COMMENT ON TABLE m_reseau_detection.geo_detec_enveloppe_s
   IS 'Enveloppe de l''affleurant du réseau détecté';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.idenvdetec IS 'Identifiant unique de l''enveloppe de réseau détecté dans la base de données';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.refenvope IS 'Référence de l''enveloppe de réseau détecté dans l''opération de détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.idobjope IS 'Identifiant du noeud affleurant dans l''opération de détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.refope IS 'Référence de l''opération de détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.refobjope IS 'Référence du noeud de réseau dans l''opération de détection';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.date_sai IS 'Horodatage de l''intégration en base de l''objet';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
-COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe.geom IS 'Géométrie de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.idenvdetec IS 'Identifiant unique de l''enveloppe de réseau détecté dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.refenvope IS 'Référence de l''enveloppe de réseau détecté dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.idobjope IS 'Identifiant du noeud affleurant dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.refope IS 'Référence de l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.refobjope IS 'Référence du noeud de réseau dans l''opération de détection';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.natres IS 'Nature du réseau de l''affleurant du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.date_sai IS 'Horodatage de l''intégration en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_s.geom IS 'Géométrie de l''objet';
 
-ALTER TABLE m_reseau_detection.geo_detec_enveloppe ALTER COLUMN idenvdetec SET DEFAULT nextval('m_reseau_detection.geo_detec_enveloppe_id_seq'::regclass);
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s ALTER COLUMN idenvdetec SET DEFAULT nextval('m_reseau_detection.geo_detec_enveloppe_s_id_seq'::regclass);
+
+
+-- Table: m_reseau_detection.geo_detec_enveloppe_l
+
+-- DROP TABLE m_reseau_detection.geo_detec_enveloppe_l;
+
+CREATE TABLE m_reseau_detection.geo_detec_enveloppe_l
+(
+  idenvldetec character varying(254) NOT NULL,
+  natres character varying(7) NOT NULL, -- fkey vers domaine de valeur
+  date_sai timestamp without time zone NOT NULL DEFAULT now(),  
+  date_maj timestamp without time zone, 
+  geom geometry(LineString,2154),
+  CONSTRAINT geo_detec_enveloppe_l_pkey PRIMARY KEY (idenvldetec) 
+)
+WITH (
+  OIDS=FALSE
+);
+
+COMMENT ON TABLE m_reseau_detection.geo_detec_enveloppe_l
+  IS 'Habillage de l''enveloppe de l''affleurant du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_l.idenvldetec IS 'Identifiant unique de l''enveloppe de réseau détecté dans la base de données';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_l.natres IS 'Nature du réseau de l''affleurant du réseau détecté';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_l.date_sai IS 'Horodatage de l''intégration en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_l.date_maj IS 'Horodatage de la mise à jour en base de l''objet';
+COMMENT ON COLUMN m_reseau_detection.geo_detec_enveloppe_l.geom IS 'Géométrie de l''objet';
+
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe_l ALTER COLUMN idenvldetec SET DEFAULT nextval('m_reseau_detection.geo_detec_enveloppe_l_id_seq'::regclass);
+
 
  
   
@@ -712,7 +796,36 @@ ALTER TABLE m_reseau_detection.geo_detec_operation
   ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
       REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- Foreign Key: m_reseau_detection.lt_natres_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s DROP CONSTRAINT lt_natres_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s               
+  ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
+      REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;
       
+-- Foreign Key: m_reseau_detection.lt_natres_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_enveloppe_l DROP CONSTRAINT lt_natres_fkey;   
+
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe_l               
+  ADD CONSTRAINT lt_natres_fkey FOREIGN KEY (natres)
+      REFERENCES m_reseau_detection.lt_natres (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;      
+
+
+-- ## TYPE AFFLEURANT
+
+-- Foreign Key: m_reseau_detection.lt_typeaffleu_fkey
+
+-- ALTER TABLE m_reseau_detection.geo_detec_noeud DROP CONSTRAINT lt_typeaffleu_fkey;
+
+ALTER TABLE m_reseau_detection.geo_detec_noeud
+  ADD CONSTRAINT lt_typeaffleu_fkey FOREIGN KEY (typeaffleu)
+      REFERENCES m_reseau_detection.lt_typeaffleu (code) MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE NO ACTION;      
     
 
 -- ## STATUT
@@ -725,7 +838,6 @@ ALTER TABLE m_reseau_detection.an_detec_reseau
   ADD CONSTRAINT lt_statut_fkey FOREIGN KEY (statut)
       REFERENCES m_reseau_detection.lt_statut (code) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;      
-
      
 -- ## TYPE OPE
 
@@ -849,25 +961,25 @@ ALTER TABLE m_reseau_detection.geo_detec_point
 
 -- Foreign Key: m_reseau_detection.refope_fkey
 
--- ALTER TABLE m_reseau_detection.geo_detec_enveloppe DROP CONSTRAINT refope_fkey;   
+-- ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s DROP CONSTRAINT refope_fkey;   
 
-ALTER TABLE m_reseau_detection.geo_detec_enveloppe               
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s               
   ADD CONSTRAINT refope_fkey FOREIGN KEY (refope)
       REFERENCES m_reseau_detection.geo_detec_operation (refope) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
 
-
+/*      
 -- ## idobjope
 
 -- Foreign Key: m_reseau_detection.idobjope_fkey
 
--- ALTER TABLE m_reseau_detection.geo_detec_enveloppe DROP CONSTRAINT idobjope_fkey;   
+-- ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s DROP CONSTRAINT idobjope_fkey;   
 
-ALTER TABLE m_reseau_detection.geo_detec_enveloppe               
+ALTER TABLE m_reseau_detection.geo_detec_enveloppe_s               
   ADD CONSTRAINT idobjope_fkey FOREIGN KEY (idobjope)
       REFERENCES m_reseau_detection.an_detec_reseau (idobjope) MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION;
-      
+*/      
 
 -- ####################################################################################################################################################
 -- ###                                                                                                                                              ###
@@ -935,7 +1047,7 @@ CREATE OR REPLACE VIEW m_reseau_detection.geo_v_detec_noeud_res AS
   a.insee,
   a.natres,
   a.statut,
-  g.typenoeud,
+  g.typeaffleu,
   a.clprecxy,
   a.clprecz,
   a.clprec,
@@ -960,7 +1072,7 @@ COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.refobjope IS 'Identif
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.insee IS 'Code INSEE de la commmune';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.natres IS 'Nature du réseau détecté';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.statut IS 'Statut de l''objet selon son état et son usage';
-COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.typenoeud IS '';
+COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.typeaffleu IS 'Type de noeud affleurant de réseau';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprecxy IS 'Classe de précision planimétrique (XY)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprecz IS 'Classe de précision altimétrique (Z)';
 COMMENT ON COLUMN m_reseau_detection.geo_v_detec_noeud_res.clprec IS 'Classe de précision planimétrique et altimétrique (XYZ)';
@@ -1132,9 +1244,9 @@ now(),
 NULL;
 
 -- geo_detec_noeud
-INSERT INTO m_reseau_detection.geo_detec_noeud (idobjdetec, typenoeud, symbnom, symbangle, symblong, symblarg, geom)
+INSERT INTO m_reseau_detection.geo_detec_noeud (idobjdetec, typeaffleu, symbnom, symbangle, symblong, symblarg, geom)
 SELECT v_idobjdetec,
-NEW.typenoeud,
+NEW.typeaffleu,
 NEW.symbnom,
 CASE WHEN NEW.symbangle >= 360 THEN NEW.symbangle - 360 ELSE NEW.symbangle END,
 NEW.symblong,
@@ -1170,7 +1282,7 @@ UPDATE
 m_reseau_detection.geo_detec_noeud
 SET
 idobjdetec=OLD.idobjdetec,
-typenoeud=NEW.typenoeud,
+typeaffleu=NEW.typeaffleu,
 symbnom=NEW.symbnom,
 symbangle=CASE WHEN NEW.symbangle >= 360 THEN (NEW.symbangle - 360) ELSE NEW.symbangle END,
 symblong=NEW.symblong,
