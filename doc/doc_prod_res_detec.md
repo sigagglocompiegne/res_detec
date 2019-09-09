@@ -78,7 +78,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |clprecz|Classe de précision altimétrique (Z)| Texte(1) = Liste "Classe de précision" | x | B |
 |clprec|Classe de précision planimétrique (XY) et altimétrique (Z)| Texte(1) = Liste "Classe de précision" | x | B |
 |horodatage|Horodatage détection/géoréfécement du point| Timestamp | x |  |
-|geom|Géométrie 3D de l'objet| Point 3D | x |  |
+|geom|Géométrie 2D de l'objet| Point 2D | x |  |
 
 ## Liste de code
 
