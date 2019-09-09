@@ -35,7 +35,7 @@ Désigne un périmètre d'opération de géodetection/géoréférencement de ré
 
 |Attribut | Définition | Type informatique | dqsd | Exemple | 
 |:---|:---|:---|:---|:---|    
-|refope|Référence de l'opération de détection|Texte(254)| x |  |
+|refope|Référence de l'opération de détection|Texte(80)| x |  |
 |typeope|Type d'opération de détection|Texte(2) = Liste "Type d'opération de détection | x | IC |
 |natres|Nature du réseau faisant l'objet de l'opération de détection|Texte(7) = Liste "Nature du réseau"| x | MULT |
 |mouvrage|Maitre d'ouvrage de l'opération de détection|Texte(80)| x | Commune de ... |
@@ -44,13 +44,25 @@ Désigne un périmètre d'opération de géodetection/géoréférencement de ré
 |nomplan|Nom du fichier du plan|Texte(80)| x | plan_1.dwg |
 |geom|Géométrie de l'objet| Surface 2D | x |  |
 
+
+### Secteur d'exclusion
+
+Désigne un secteur d''exclusion de géodetection/géoréférencement de réseau
+
+|Attribut | Définition | Type informatique | dqsd | Exemple | 
+|:---|:---|:---|:---|:---|    
+|refope|Référence de l'opération de détection|Texte(80)| x |  |
+|observ|Observations|Texte(254)| x |  |
+|geom|Géométrie de l'objet| Surface 2D | x |  |
+
+
 ### Point levé
 
 Désigne les points de géodetection/géoréférencement du réseau
 
 |Attribut | Définition | Type informatique | dqsd | Exemple | 
 |:---|:---|:---|:---|:---|    
-|refope|Référence de l'opération de détection|Texte(254)| x |  |
+|refope|Référence de l'opération de détection|Texte(80)| x |  |
 |refptope|Référence du point levé dans l'opération de détection|Texte(30)| x | pt2.3 |
 |typedetec|Type de géodétection/géoréférencement|Texte(2) = Liste "Type de détection | x | OUV |
 |methode|Méthode employée pour la détection|Texte(254)| x | Acoustique |
