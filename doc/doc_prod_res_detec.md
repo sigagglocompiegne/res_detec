@@ -33,7 +33,7 @@
 
 Désigne un périmètre d'opération de géodetection/géoréférencement de réseau
 
-|Attribut | Définition | Type informatique | dqsd | Exemple | 
+|Attribut | Définition | Type informatique | Obligatoire | Exemple | 
 |:---|:---|:---|:---|:---|    
 |refope|Référence de l'opération de détection|Texte(80)| x |  |
 |typeope|Type d'opération de détection|Texte(2) = Liste "Type d'opération de détection | x | IC |
@@ -49,7 +49,7 @@ Désigne un périmètre d'opération de géodetection/géoréférencement de ré
 
 Désigne un secteur d''exclusion de géodetection/géoréférencement de réseau
 
-|Attribut | Définition | Type informatique | dqsd | Exemple | 
+|Attribut | Définition | Type informatique | Obligatoire | Exemple | 
 |:---|:---|:---|:---|:---|    
 |refope|Référence de l'opération de détection|Texte(80)| x |  |
 |observ|Observations|Texte(254)| x |  |
@@ -60,7 +60,7 @@ Désigne un secteur d''exclusion de géodetection/géoréférencement de réseau
 
 Désigne les points de géodetection/géoréférencement du réseau
 
-|Attribut | Définition | Type informatique | dqsd | Exemple | 
+|Attribut | Définition | Type informatique | Obligatoire | Exemple | 
 |:---|:---|:---|:---|:---|    
 |refope|Référence de l'opération de détection|Texte(80)| x |  |
 |refptope|Référence du point levé dans l'opération de détection|Texte(30)| x | pt2.3 |
