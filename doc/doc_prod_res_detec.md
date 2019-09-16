@@ -43,6 +43,7 @@ Désigne un périmètre d'opération de géodetection/géoréférencement de ré
 |datedebope|Date du début de l'opération de détection|Date| x | 2019-07-18 |
 |datefinope|Date de fin de l'opération de détection|Date| x | 2019-07-24 |
 |nomplan|Nom du fichier du plan|Texte(80)| x | plan_1.dwg |
+|observ|Observations|Texte(254)| x |  |
 |geom|Géométrie de l'objet| Surface 2D | x |  |
 
 
