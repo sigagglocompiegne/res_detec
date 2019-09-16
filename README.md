@@ -6,4 +6,6 @@ Ensemble des éléments constituant la mise en oeuvre d'une gestion patrimoniale
 
 - Script d'initialisation de la base de données
   * [Création  de la structure initiale](sql/init_bd_res_detec_10_squelette.sql)
-- [Documentation d'administration de la base de données](doc/doc_admin_res_detec.md)
+- Documentation
+  * [Documentation sur les livrables de production](doc/doc_prod_res_detec.md) 
+  * [Documentation d'administration de la base de données](doc/doc_admin_res_detec.md)
