@@ -54,6 +54,7 @@ Désigne un secteur d''exclusion de géodetection/géoréférencement de réseau
 |Attribut | Définition | Type informatique | Obligatoire | Exemple | 
 |:---|:---|:---|:---|:---|    
 |refope|Référence de l'opération de détection|Texte(80)| x |  |
+|refexcope|Référence du secteur d'exclusion dans l'opération de détection|Texte(80)| x |  |
 |observ|Observations|Texte(254)| x |  |
 |geom|Géométrie de l'objet| Surface 2D | x |  |
 
