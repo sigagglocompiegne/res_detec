@@ -93,7 +93,7 @@ Désigne les points de géodetection/géoréférencement du réseau
 |ELEC| Electricité | #FF0000 |
 |ELECECL| Eclairage public | #FF0000 |
 |ELECSLT| Signalisation lumineuse tricolore | #FF0000 |
-|ELECTRD| Eléctricité transport/distribution | #FF0000 |
+|ELECTRD| Electricité transport/distribution | #FF0000 |
 |GAZ| Gaz | #FFFF00 |
 |CHIM|Produits chimiques|#F99707|
 |AEP|Eau potable|#00B0F0|
